@@ -1,9 +1,10 @@
 module Model
     ( Color (..)
-    , Cell (..)
+    , Cell  (..)
     , Layer (..)
-    , Face (..)
-    , Cube (..)
+    , Face  (..)
+    , Cube  (..)
+    , Game  (..)
     -- Rotating each layer of the cube
     , rotLayerXp
     , rotLayerXn
@@ -64,6 +65,8 @@ type Face = [[Color]]
 -- |A cube is a stack of layers along the z-axis. The layer 0 is
 -- at the negative pole of the z-axis (see model discussion below).
 type Cube = [Layer]
+
+data Game = Game { cube :: Cube }
 
 -- =============================================================== --
 -- Modeling the cube and its rotations
