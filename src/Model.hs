@@ -107,16 +107,6 @@ data Game = Game { cube :: Cube }
 -- replacing the positive z-axis, rotating the layer and then
 -- rotating the cube back to its original configuration. Each cell is
 -- also rotated accordingly.
---
----------------------------------------------------------------------
--- The cube and the cells have six faces each (see diagram above):
---
--- x-positive: face at the positive pole of the x-axis
--- x-negative: face at the negative pole of the x-axis
--- y-positive: face at the positive pole of the y-axis
--- y-negative: face at the negative pole of the y-axis
--- z-positive: face at the positive pole of the z-axis
--- z-negative: face at the negative pole of the z-axis
 
 --------------------------------------------------------------------
 -- 90-degree cell rotations
@@ -190,11 +180,20 @@ cellZp (Cell _ _ _ _ z _) = z
 cellZn (Cell _ _ _ _ _ z) = z
 
 faceXpos, faceXneg :: Cube -> Face
+-- ^The cube and the cells have six faces each (see diagram above).
+-- Faces always have the positive axes pointing right and down.
+--
+-- x-positive: pos pole of x-axis, pos z right, pos y down
+-- x-negative: neg pole of x-axis, pos z left,  pos y down
+-- y-positive: pos pole of y-axis, pos x right, pos z down
+-- y-negative: neg pole of y-axis, pos x right, pos z up
+-- z-positive: pos pole of z-axis, pos x right, pos y up
+-- z-negative: neg pole of z-axis, pos x right, pos y down
 faceXpos = (map . map) cellZn . head . rotCubeYp
 faceXneg = (map . map) cellZn . head . rotCubeYn
 faceYpos = (map . map) cellZn . head . rotCubeXn
 faceYneg = (map . map) cellZn . head . rotCubeXp
-faceZpos = (map . map) cellZp . last
+faceZpos = (map . map) cellZp . head . rotCubeXp . rotCubeXp
 faceZneg = (map . map) cellZn . head
 
 -- =============================================================== --
