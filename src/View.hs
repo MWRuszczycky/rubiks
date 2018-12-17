@@ -23,10 +23,10 @@ renderCellFace f r c = G.translate (go c) (go r) ( f 20 20 )
     where go u = fromIntegral $ 22 * (u - 1)
 
 renderColor :: M.Color -> G.Color
-renderColor M.Red    = G.makeColor 1.0 0.0 0.0 1.0
-renderColor M.White  = G.makeColor 1.0 1.0 1.0 1.0
-renderColor M.Yellow = G.makeColor 1.0 1.0 0.0 1.0
-renderColor M.Green  = G.makeColor 0.0 1.0 0.0 1.0
-renderColor M.Blue   = G.makeColor 0.0 0.0 1.0 1.0
-renderColor M.Orange = G.makeColor 1.0 0.5 0.0 1.0
-renderColor M.Hidden = G.makeColor 0.1 0.1 0.1 1.0
+renderColor M.Red    = G.makeColor 0.78 0.15 0.10 1.0
+renderColor M.White  = G.makeColor 0.75 0.75 0.75 1.0
+renderColor M.Yellow = G.makeColor 1.00 0.85 0.34 1.0
+renderColor M.Green  = G.makeColor 0.00 0.54 0.36 1.0
+renderColor M.Blue   = G.makeColor 0.00 0.64 1.00 1.0
+renderColor M.Orange = G.makeColor 1.00 0.38 0.00 1.0
+renderColor M.Hidden = G.makeColor 0.10 0.10 0.10 1.0
