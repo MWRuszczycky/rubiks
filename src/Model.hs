@@ -9,12 +9,6 @@ module Model
     , Axis     (..)
     -- Rotating each layer of the cube
     , rotateLayer
-    , rotLayerXp
-    , rotLayerXn
-    , rotLayerYp
-    , rotLayerYn
-    , rotLayerZp
-    , rotLayerZn
     -- Getting the faces of the cube
     , faceXpos
     , faceXneg
@@ -51,7 +45,7 @@ instance Show Color where
 
 data Axis = XAxis | YAxis | ZAxis deriving ( Eq, Show )
 
-data Rotation = Pos90 | Neg90 | Rotation Float deriving ( Eq, Show )
+data Rotation = Pos90 | Neg90 deriving ( Eq, Show )
 
 -- |Cells make up a cube and each cell has six faces (see below).
 -- The faces are layed out as:
@@ -120,70 +114,45 @@ data Game = Game { cube     :: Cube
 --------------------------------------------------------------------
 -- 90-degree cell rotations
 
-rotCellXp, rotCellXn :: Cell -> Cell
-rotCellXp (Cell xp xn yp yn zp zn) = Cell xp xn zn zp yp yn
-rotCellXn (Cell xp xn yp yn zp zn) = Cell xp xn zp zn yn yp
-
-rotCellYp, rotCellYn :: Cell -> Cell
-rotCellYp (Cell xp xn yp yn zp zn) = Cell zp zn yp yn xn xp
-rotCellYn (Cell xp xn yp yn zp zn) = Cell zn zp yp yn xp xn
-
-rotCellZp, rotCellZn :: Cell -> Cell
-rotCellZp (Cell xp xn yp yn zp zn) = Cell yn yp xp xn zp zn
-rotCellZn (Cell xp xn yp yn zp zn) = Cell yp yn xn xp zp zn
+rotCell :: Axis -> Rotation -> Cell -> Cell
+rotCell XAxis Pos90 (Cell xp xn yp yn zp zn) = Cell xp xn zn zp yp yn
+rotCell XAxis Neg90 (Cell xp xn yp yn zp zn) = Cell xp xn zp zn yn yp
+rotCell YAxis Pos90 (Cell xp xn yp yn zp zn) = Cell zp zn yp yn xn xp
+rotCell YAxis Neg90 (Cell xp xn yp yn zp zn) = Cell zn zp yp yn xp xn
+rotCell ZAxis Pos90 (Cell xp xn yp yn zp zn) = Cell yn yp xp xn zp zn
+rotCell ZAxis Neg90 (Cell xp xn yp yn zp zn) = Cell yp yn xn xp zp zn
 
 ---------------------------------------------------------------------
 -- 90-degree Cube rotations
 
-rotCubeXp, rotCubeXn :: Cube -> Cube
-rotCubeXp = (map . map . map) rotCellXp
-            . map reverse . transpose
-rotCubeXn = (map . map . map) rotCellXn
-            . transpose . map reverse
-
-rotCubeYp, rotCubeYn :: Cube -> Cube
-rotCubeYp = (map . map . map) rotCellYp
-            . map transpose . transpose
-            . map reverse . map transpose
-rotCubeYn = (map . map . map) rotCellYn
-            . map transpose . map reverse
-            . transpose . map transpose
-
-rotCubeZp, rotCubeZn :: Cube -> Cube
-rotCubeZp = (map . map . map) rotCellZp
-            . map ( map reverse . transpose )
-rotCubeZn = (map . map . map) rotCellZn
-            . map ( transpose . map reverse )
+rotCube :: Axis -> Rotation -> Cube -> Cube
+rotCube XAxis Pos90 = (map . map . map) (rotCell XAxis Pos90)
+                      . map reverse . transpose
+rotCube XAxis Neg90 = (map . map . map) (rotCell XAxis Neg90)
+                      . transpose . map reverse
+rotCube YAxis Pos90 = (map . map . map) (rotCell YAxis Pos90)
+                      . map transpose . transpose
+                      . map reverse . map transpose
+rotCube YAxis Neg90 = (map . map . map) (rotCell YAxis Neg90)
+                      . map transpose . map reverse
+                      . transpose . map transpose
+rotCube ZAxis Pos90 = (map . map . map) (rotCell ZAxis Pos90)
+                      . map ( map reverse . transpose )
+rotCube ZAxis Neg90 = (map . map . map) (rotCell ZAxis Neg90)
+                      . map ( transpose . map reverse )
 
 ---------------------------------------------------------------------
 -- Layer rotations
 
-rotLayerPos, rotLayerNeg :: Layer -> Layer
-rotLayerPos = (map . map) rotCellZp . map reverse . transpose
-rotLayerNeg = (map . map) rotCellZn . transpose . map reverse
-
-rotLayer :: Int -> (Layer -> Layer) -> Cube -> Cube
-rotLayer n go c = [ if k == n then go x else x | (x,k) <- zip c [0..] ]
+rotLayer :: Int -> Rotation -> Cube -> Cube
+rotLayer n t c = [ if k == n then go t x else x | (x,k) <- zip c [0..] ]
+    where go Pos90 = (map . map) (rotCell ZAxis Pos90) . map reverse . transpose
+          go Neg90 = (map . map) (rotCell ZAxis Neg90) . transpose . map reverse
 
 rotateLayer :: Axis -> Rotation -> Int -> Cube -> Cube
-rotateLayer XAxis Pos90 = rotLayerXp
-rotateLayer XAxis Neg90 = rotLayerXn
-rotateLayer YAxis Pos90 = rotLayerYp
-rotateLayer YAxis Neg90 = rotLayerYn
-rotateLayer ZAxis Pos90 = rotLayerZp
-rotateLayer ZAxis Neg90 = rotLayerZn
-
-rotLayerZp, rotLayerZn :: Int -> Cube -> Cube
-rotLayerZp n = rotLayer n rotLayerPos
-rotLayerZn n = rotLayer n rotLayerNeg
-
-rotLayerXp, rotLayerXn :: Int -> Cube -> Cube
-rotLayerXp n = rotCubeYp . rotLayer n rotLayerPos . rotCubeYn
-rotLayerXn n = rotCubeYp . rotLayer n rotLayerNeg . rotCubeYn
-
-rotLayerYp, rotLayerYn :: Int -> Cube -> Cube
-rotLayerYp n = rotCubeXn . rotLayer n rotLayerPos . rotCubeXp
-rotLayerYn n = rotCubeXn . rotLayer n rotLayerNeg . rotCubeXp
+rotateLayer XAxis t n = rotCube YAxis Pos90 . rotLayer n t . rotCube YAxis Neg90
+rotateLayer YAxis t n = rotCube XAxis Neg90 . rotLayer n t . rotCube XAxis Pos90
+rotateLayer ZAxis t n = rotLayer n t
 
 -- =============================================================== --
 -- Getting the faces of the cube
@@ -206,11 +175,11 @@ faceXpos, faceXneg, faceYpos, faceYneg, faceZpos, faceZneg :: Cube -> Face
 -- y-negative: neg pole of y-axis, pos x right, pos z up
 -- z-positive: pos pole of z-axis, pos x right, pos y up
 -- z-negative: neg pole of z-axis, pos x right, pos y down
-faceXpos = (map . map) cellZn . head . rotCubeYp
-faceXneg = (map . map) cellZn . head . rotCubeYn
-faceYpos = (map . map) cellZn . head . rotCubeXn
-faceYneg = (map . map) cellZn . head . rotCubeXp
-faceZpos = (map . map) cellZp . head . rotCubeXp . rotCubeXp
+faceXpos = (map . map) cellZn . head . rotCube YAxis Pos90
+faceXneg = (map . map) cellZn . head . rotCube YAxis Neg90
+faceYpos = (map . map) cellZn . head . rotCube XAxis Neg90
+faceYneg = (map . map) cellZn . head . rotCube XAxis Pos90
+faceZpos = (map . map) cellZp . head . ( \ f -> f . f ) (rotCube XAxis Pos90)
 faceZneg = (map . map) cellZn . head
 
 -- =============================================================== --
