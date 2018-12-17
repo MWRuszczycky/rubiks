@@ -2,6 +2,7 @@
 import qualified Graphics.Gloss.Interface.IO.Interact as G
 import qualified Graphics.Gloss                       as G
 import qualified Model                                as M
+import View                                                ( renderGame )
 
 main :: IO ()
 main = do
@@ -12,9 +13,6 @@ initGame :: ( M.Game, G.Display )
 initGame = ( M.Game { M.cube = M.solved }
            , G.InWindow "Rubiks" (300, 300) (60, 60)
            )
-
-renderGame :: M.Game -> G.Picture
-renderGame g = G.Blank
 
 routeEvent :: G.Event -> M.Game -> M.Game
 routeEvent _ = id

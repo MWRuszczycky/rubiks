@@ -22,3 +22,4 @@ executable rubiks
                      , gloss
   other-modules:       Model
                      , Paths_rubiks
+                     , View
