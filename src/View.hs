@@ -6,14 +6,20 @@ import qualified Graphics.Gloss as G
 import qualified Model          as M
 
 renderGame :: M.Game -> G.Picture
-renderGame = G.pictures . renderFace . M.faceZneg . M.cube
+renderGame g = ( renderFace . M.faceZneg . M.cube $ g ) <> renderSelected g
 
-renderFace :: M.Face -> [ G.Picture ]
-renderFace xs = map go [ ( (xs !! i) !! j, i, j ) | i <- [0..2], j <- [0..2] ]
-    where go (x,r,c) = G.color (renderColor x) $ renderCellFace r c
+renderFace :: M.Face -> G.Picture
+renderFace xs = G.pictures . map go $ indexed
+    where indexed    = [ ( (xs !! i) !! j, i, j ) | i <- [0..2], j <- [0..2] ]
+          go (x,r,c) = G.color (renderColor x)
+                       $ renderCellFace G.rectangleSolid r c
 
-renderCellFace :: Int -> Int -> G.Picture
-renderCellFace r c = G.translate (go r) (go c) ( G.rectangleSolid 20 20 )
+renderSelected :: M.Game -> G.Picture
+renderSelected g = maybe G.Blank go . M.selected $ g
+    where go (r,c) = G.color G.white $ renderCellFace G.rectangleWire r c
+
+renderCellFace :: (Float -> Float -> G.Picture) -> Int -> Int -> G.Picture
+renderCellFace f r c = G.translate (go c) (go r) ( f 20 20 )
     where go u = fromIntegral $ 22 * (u - 1)
 
 renderColor :: M.Color -> G.Color

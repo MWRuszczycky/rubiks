@@ -10,7 +10,7 @@ main = do
     G.play w G.black 10 g renderGame routeEvent updateTime
 
 initGame :: ( M.Game, G.Display )
-initGame = ( M.Game { M.cube = M.solved }
+initGame = ( M.Game { M.cube = M.solved, M.selected = Nothing }
            , G.InWindow "Rubiks" (300, 300) (60, 60)
            )
 

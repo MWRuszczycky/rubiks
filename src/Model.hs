@@ -1,11 +1,14 @@
 module Model
-    ( Color (..)
-    , Cell  (..)
-    , Layer (..)
-    , Face  (..)
-    , Cube  (..)
-    , Game  (..)
+    ( Color    (..)
+    , Cell     (..)
+    , Layer    (..)
+    , Face     (..)
+    , Cube     (..)
+    , Game     (..)
+    , Rotation (..)
+    , Axis     (..)
     -- Rotating each layer of the cube
+    , rotateLayer
     , rotLayerXp
     , rotLayerXn
     , rotLayerYp
@@ -46,6 +49,10 @@ instance Show Color where
     show Orange = "O"
     show Hidden = "H"
 
+data Axis = XAxis | YAxis | ZAxis deriving ( Eq, Show )
+
+data Rotation = Pos90 | Neg90 | Rotation Float deriving ( Eq, Show )
+
 -- |Cells make up a cube and each cell has six faces (see below).
 -- The faces are layed out as:
 -- x-positive x-negative y-positive y-negative z-positive z-negative
@@ -66,7 +73,9 @@ type Face = [[Color]]
 -- at the negative pole of the z-axis (see model discussion below).
 type Cube = [Layer]
 
-data Game = Game { cube :: Cube }
+data Game = Game { cube     :: Cube
+                 , selected :: Maybe (Int, Int)
+                 } deriving ( Show )
 
 -- =============================================================== --
 -- Modeling the cube and its rotations
@@ -156,6 +165,14 @@ rotLayerNeg = (map . map) rotCellZn . transpose . map reverse
 rotLayer :: Int -> (Layer -> Layer) -> Cube -> Cube
 rotLayer n go c = [ if k == n then go x else x | (x,k) <- zip c [0..] ]
 
+rotateLayer :: Axis -> Rotation -> Int -> Cube -> Cube
+rotateLayer XAxis Pos90 = rotLayerXp
+rotateLayer XAxis Neg90 = rotLayerXn
+rotateLayer YAxis Pos90 = rotLayerYp
+rotateLayer YAxis Neg90 = rotLayerYn
+rotateLayer ZAxis Pos90 = rotLayerZp
+rotateLayer ZAxis Neg90 = rotLayerZn
+
 rotLayerZp, rotLayerZn :: Int -> Cube -> Cube
 rotLayerZp n = rotLayer n rotLayerPos
 rotLayerZn n = rotLayer n rotLayerNeg
@@ -179,7 +196,7 @@ cellYn (Cell _ _ _ y _ _) = y
 cellZp (Cell _ _ _ _ z _) = z
 cellZn (Cell _ _ _ _ _ z) = z
 
-faceXpos, faceXneg :: Cube -> Face
+faceXpos, faceXneg, faceYpos, faceYneg, faceZpos, faceZneg :: Cube -> Face
 -- ^The cube and the cells have six faces each (see diagram above).
 -- Faces always have the positive axes pointing right and down.
 --
