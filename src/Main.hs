@@ -1,8 +1,8 @@
-
-import qualified Graphics.Gloss.Interface.IO.Interact as G
-import qualified Graphics.Gloss                       as G
-import qualified Model                                as M
-import View                                                ( renderGame )
+import qualified Graphics.Gloss as G
+import qualified Model          as M
+import View                          ( renderGame )
+import Controller                    ( routeEvent
+                                     , updateTime )
 
 main :: IO ()
 main = do
@@ -13,12 +13,6 @@ initGame :: ( M.Game, G.Display )
 initGame = ( M.Game { M.cube = M.solved }
            , G.InWindow "Rubiks" (300, 300) (60, 60)
            )
-
-routeEvent :: G.Event -> M.Game -> M.Game
-routeEvent _ = id
-
-updateTime :: Float -> M.Game -> M.Game
-updateTime dt = id
 
 viewRubiks :: M.Cube -> IO ()
 viewRubiks c = do

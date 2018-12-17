@@ -20,6 +20,7 @@ executable rubiks
   ghc-options:         -O2 -threaded
   build-depends:       base >= 4.7 && < 5
                      , gloss
-  other-modules:       Model
+  other-modules:       Controller
+                     , Model
                      , Paths_rubiks
                      , View
