@@ -21,4 +21,6 @@ executable             rubiks
   other-modules:       Controller
                      , Model
                      , Paths_rubiks
+                     , Resources
+                     , Types
                      , View

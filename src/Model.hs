@@ -1,228 +1,203 @@
 module Model
-    ( Color    (..)
-    , Cell     (..)
-    , Layer    (..)
-    , Face     (..)
-    , Cube     (..)
-    , Game     (..)
-    , Rotation (..)
-    , Axis     (..)
-    -- Rotating each layer of the cube
+    ( -- Getting the faces of the cube
+      cellFace
+    , cubeFace
+      -- Rotating each layer of the cube
     , rotateLayer
-    -- Getting the faces of the cube
-    , faceXpos
-    , faceXneg
-    , faceYpos
-    , faceYneg
-    , faceZpos
-    , faceZneg
-    -- A solved Rubiks cube
-    , solved
+      -- Total rotations for visualization
+    , prodMM
+    , prodMV
+    , translatePath
+    , rotatePath
+    , rotXMat
+    , rotYMat
+    , rotZMat
     ) where
 
-import Data.List ( transpose )
-
--- =============================================================== --
--- Types
-
-data Color = Red
-           | White
-           | Yellow
-           | Green
-           | Blue
-           | Orange
-           | Hidden
-           deriving ( Eq )
-
-instance Show Color where
-    show Red    = "R"
-    show White  = "W"
-    show Yellow = "Y"
-    show Green  = "G"
-    show Blue   = "B"
-    show Orange = "O"
-    show Hidden = "H"
-
-data Axis = XAxis | YAxis | ZAxis deriving ( Eq, Show )
-
-data Rotation = Pos90 | Neg90 deriving ( Eq, Show )
-
--- |Cells make up a cube and each cell has six faces (see below).
--- The faces are layed out as:
--- x-positive x-negative y-positive y-negative z-positive z-negative
-data Cell = Cell Color Color Color Color Color Color deriving ( Eq )
-
-instance Show Cell where
-    show (Cell xp xn yp yn zp zn) = show xp
-
--- |A Layer is all the cells in the (x,y)-plane for some depth of z.
--- To get layers along the x or y axes, you first rotate the cube to
--- place the positive x or y axis along the positive z-axis.
-type Layer = [[Cell]]
-
--- |A cube Face cube is the matrix of corresponding cell face colors.
-type Face = [[Color]]
-
--- |A cube is a stack of layers along the z-axis. The layer 0 is
--- at the negative pole of the z-axis (see model discussion below).
-type Cube = [Layer]
-
-data Game = Game { cube     :: Cube
-                 , selected :: Maybe (Int, Int)
-                 } deriving ( Show )
-
--- =============================================================== --
--- Modeling the cube and its rotations
-
--- The screen is modeled with a right-handed coordinate fram where
--- the positive-y axis points down, the positive x-axis points right
--- and the positive-z axis points into the screen:
---
---    -y  positive-z into screen
---     |
--- -x --------------------------------> +x
---     |
---     |  Layer-0 on top in the (x,y)-plane at negative pole of z
---     |  Layer-n at bottom in the (x,y)-plane at positive pole of z
---     |  [ [ (0,0) (0,1) (0,2) ]
---     |    [ (1,0) (1,1) (1,2) ]    <-- positive-x face
---     |    [ (2,0) (2,1) (2,2) ] ]
---     |
---     v      ^                       looking down on negative z-face
---    +y      | positive-y face
---
----------------------------------------------------------------------
--- Total Rotations
---
--- Total rotations of the cube (i.e., rotation of all stacked layers
--- simultaneously) are handled separately as the these do not change
--- the organization of the cube and only its visualization. The cube
--- is thus modeled as orientationally fixed and only individual layer
--- rotations change the cube.
---
----------------------------------------------------------------------
--- Layer rotations
---
--- Right-handed rotations are positive (i.e., thumb in the positive
--- direction of the axis of rotation) and left-handed rotations are
--- negative. Rotations of individual layers are modeled by rotating
--- the cube so that the positive axis points into the screen
--- replacing the positive z-axis, rotating the layer and then
--- rotating the cube back to its original configuration. Each cell is
--- also rotated accordingly.
-
---------------------------------------------------------------------
--- 90-degree cell rotations
-
-rotCell :: Axis -> Rotation -> Cell -> Cell
-rotCell XAxis Pos90 (Cell xp xn yp yn zp zn) = Cell xp xn zn zp yp yn
-rotCell XAxis Neg90 (Cell xp xn yp yn zp zn) = Cell xp xn zp zn yn yp
-rotCell YAxis Pos90 (Cell xp xn yp yn zp zn) = Cell zp zn yp yn xn xp
-rotCell YAxis Neg90 (Cell xp xn yp yn zp zn) = Cell zn zp yp yn xp xn
-rotCell ZAxis Pos90 (Cell xp xn yp yn zp zn) = Cell yn yp xp xn zp zn
-rotCell ZAxis Neg90 (Cell xp xn yp yn zp zn) = Cell yp yn xn xp zp zn
-
----------------------------------------------------------------------
--- 90-degree Cube rotations
-
-rotCube :: Axis -> Rotation -> Cube -> Cube
-rotCube XAxis Pos90 = (map . map . map) (rotCell XAxis Pos90)
-                      . map reverse . transpose
-rotCube XAxis Neg90 = (map . map . map) (rotCell XAxis Neg90)
-                      . transpose . map reverse
-rotCube YAxis Pos90 = (map . map . map) (rotCell YAxis Pos90)
-                      . map transpose . transpose
-                      . map reverse . map transpose
-rotCube YAxis Neg90 = (map . map . map) (rotCell YAxis Neg90)
-                      . map transpose . map reverse
-                      . transpose . map transpose
-rotCube ZAxis Pos90 = (map . map . map) (rotCell ZAxis Pos90)
-                      . map ( map reverse . transpose )
-rotCube ZAxis Neg90 = (map . map . map) (rotCell ZAxis Neg90)
-                      . map ( transpose . map reverse )
-
----------------------------------------------------------------------
--- Layer rotations
-
-rotLayer :: Int -> Rotation -> Cube -> Cube
-rotLayer n t c = [ if k == n then go t x else x | (x,k) <- zip c [0..] ]
-    where go Pos90 = (map . map) (rotCell ZAxis Pos90) . map reverse . transpose
-          go Neg90 = (map . map) (rotCell ZAxis Neg90) . transpose . map reverse
-
-rotateLayer :: Axis -> Rotation -> Int -> Cube -> Cube
-rotateLayer XAxis t n = rotCube YAxis Pos90 . rotLayer n t . rotCube YAxis Neg90
-rotateLayer YAxis t n = rotCube XAxis Neg90 . rotLayer n t . rotCube XAxis Pos90
-rotateLayer ZAxis t n = rotLayer n t
+import Data.List ( transpose     )
+import Types     ( Axis     (..)
+                 , Cell     (..)
+                 , Color    (..)
+                 , Cube     (..)
+                 , Face     (..)
+                 , Layer    (..)
+                 , Matrix   (..)
+                 , Pole     (..)
+                 , Rotation (..)
+                 , Vec3     (..)
+                 , Path3D   (..) )
 
 -- =============================================================== --
 -- Getting the faces of the cube
 
-cellXp, cellXn, cellYp, cellYn, cellZp, cellZn :: Cell -> Color
-cellXp (Cell x _ _ _ _ _) = x
-cellXn (Cell _ x _ _ _ _) = x
-cellYp (Cell _ _ y _ _ _) = y
-cellYn (Cell _ _ _ y _ _) = y
-cellZp (Cell _ _ _ _ z _) = z
-cellZn (Cell _ _ _ _ _ z) = z
+-- Exported
 
-faceXpos, faceXneg, faceYpos, faceYneg, faceZpos, faceZneg :: Cube -> Face
--- ^The cube and the cells have six faces each (see diagram above).
--- Faces always have the positive axes pointing right and down.
---
+cellFace :: Axis -> Pole -> Cell -> Color
+-- ^Retrieve the color of the cell face given an axis and pole/side.
+cellFace XAxis Pos (Cell x _ _ _ _ _) = x
+cellFace XAxis Neg (Cell _ x _ _ _ _) = x
+cellFace YAxis Pos (Cell _ _ y _ _ _) = y
+cellFace YAxis Neg (Cell _ _ _ y _ _) = y
+cellFace ZAxis Pos (Cell _ _ _ _ z _) = z
+cellFace ZAxis Neg (Cell _ _ _ _ _ z) = z
+
+cubeFace :: Axis -> Pole -> Cube -> Face
+-- ^Retrieve the faces of all six cells at the specified pole of the
+-- specified axis facing out from the center of the cube.
 -- x-positive: pos pole of x-axis, pos z right, pos y down
+cubeFace XAxis Pos = (map . map) (cellFace ZAxis Neg)
+                     . head . rotateCube YAxis Pos90
 -- x-negative: neg pole of x-axis, pos z left,  pos y down
+cubeFace XAxis Neg = (map . map) (cellFace ZAxis Neg)
+                     . head . rotateCube YAxis Neg90
 -- y-positive: pos pole of y-axis, pos x right, pos z down
+cubeFace YAxis Pos = (map . map) (cellFace ZAxis Neg)
+                     . head . rotateCube XAxis Neg90
 -- y-negative: neg pole of y-axis, pos x right, pos z up
+cubeFace YAxis Neg = (map . map) (cellFace ZAxis Neg)
+                     . head . rotateCube XAxis Pos90
 -- z-positive: pos pole of z-axis, pos x right, pos y up
+cubeFace ZAxis Pos = (map . map) (cellFace ZAxis Pos)
+                     . head . ( \ f -> f . f ) (rotateCube XAxis Pos90)
 -- z-negative: neg pole of z-axis, pos x right, pos y down
-faceXpos = (map . map) cellZn . head . rotCube YAxis Pos90
-faceXneg = (map . map) cellZn . head . rotCube YAxis Neg90
-faceYpos = (map . map) cellZn . head . rotCube XAxis Neg90
-faceYneg = (map . map) cellZn . head . rotCube XAxis Pos90
-faceZpos = (map . map) cellZp . head . ( \ f -> f . f ) (rotCube XAxis Pos90)
-faceZneg = (map . map) cellZn . head
+cubeFace ZAxis Neg = (map . map) (cellFace ZAxis Neg) . head
 
 -- =============================================================== --
--- Testing
+-- Modeling cube manipulation via layer rotations
 
-solved :: Cube
-solved = [ [ [ Cell Hidden Blue   Hidden Orange Hidden Red
-             , Cell Hidden Hidden Hidden Orange Hidden Red
-             , Cell White  Hidden Hidden Orange Hidden Red
-             ]
-           , [ Cell Hidden Blue   Hidden Hidden Hidden Red
-             , Cell Hidden Hidden Hidden Hidden Hidden Red
-             , Cell White  Hidden Hidden Hidden Hidden Red
-             ]
-           , [ Cell Hidden Blue   Green Hidden Hidden Red
-             , Cell Hidden Hidden Green Hidden Hidden Red
-             , Cell White  Hidden Green Hidden Hidden Red
-             ]
-           ]
-        ,  [ [ Cell Hidden Blue   Hidden Orange Hidden Hidden
-             , Cell Hidden Hidden Hidden Orange Hidden Hidden
-             , Cell White  Hidden Hidden Orange Hidden Hidden
-             ]
-           , [ Cell Hidden Blue   Hidden Hidden Hidden Hidden
-             , Cell Hidden Hidden Hidden Hidden Hidden Hidden
-             , Cell White  Hidden Hidden Hidden Hidden Hidden
-             ]
-           , [ Cell Hidden Blue   Green Hidden Hidden Hidden
-             , Cell Hidden Hidden Green Hidden Hidden Hidden
-             , Cell White  Hidden Green Hidden Hidden Hidden
-             ]
-           ]
-        ,  [ [ Cell Hidden Blue   Hidden Orange Yellow Hidden
-             , Cell Hidden Hidden Hidden Orange Yellow Hidden
-             , Cell White  Hidden Hidden Orange Yellow Hidden
-             ]
-           , [ Cell Hidden Blue   Hidden Hidden Yellow Hidden
-             , Cell Hidden Hidden Hidden Hidden Yellow Hidden
-             , Cell White  Hidden Hidden Hidden Yellow Hidden
-             ]
-           , [ Cell Hidden Blue   Green Hidden Yellow Hidden
-             , Cell Hidden Hidden Green Hidden Yellow Hidden
-             , Cell White  Hidden Green Hidden Yellow Hidden
-             ]
-           ]
-        ]
+---------------------------------------------------------------------
+-- Layer rotations
+
+-- Exported
+
+rotateLayer :: Axis -> Rotation -> Int -> Cube -> Cube
+-- ^Rotate the n-th layer along the given axis 90-degrees in the
+-- specified direction. Positive rotations are right handed along the
+-- positive direction of the axis. This works by first rotating the
+-- whole cube so that the axis of rotation is placed along the z-axis,
+-- rotating and then going back.
+rotateLayer XAxis t n = rotateCube YAxis Pos90
+                        . rotateZLayer n t
+                        . rotateCube YAxis Neg90
+rotateLayer YAxis t n = rotateCube XAxis Neg90
+                        . rotateZLayer n t
+                        . rotateCube XAxis Pos90
+rotateLayer ZAxis t n = rotateZLayer n t
+
+-- Unexported
+
+rotateZLayer :: Int -> Rotation -> Cube -> Cube
+-- ^Rotate the specified layer along the z-axis 90-degrees in the
+-- specified direction.
+rotateZLayer n t c = [ if k == n then go t x else x | (x,k) <- zip c [0..] ]
+    where go Pos90 = (map . map) (rotateCell ZAxis Pos90)
+                     . map reverse . transpose
+          go Neg90 = (map . map) (rotateCell ZAxis Neg90)
+                     . transpose . map reverse
+
+--------------------------------------------------------------------
+-- 90-degree single-cell rotation helper function
+
+-- Unexported
+
+rotateCell :: Axis -> Rotation -> Cell -> Cell
+rotateCell XAxis Pos90 (Cell xp xn yp yn zp zn) = Cell xp xn zn zp yp yn
+rotateCell XAxis Neg90 (Cell xp xn yp yn zp zn) = Cell xp xn zp zn yn yp
+rotateCell YAxis Pos90 (Cell xp xn yp yn zp zn) = Cell zp zn yp yn xn xp
+rotateCell YAxis Neg90 (Cell xp xn yp yn zp zn) = Cell zn zp yp yn xp xn
+rotateCell ZAxis Pos90 (Cell xp xn yp yn zp zn) = Cell yn yp xp xn zp zn
+rotateCell ZAxis Neg90 (Cell xp xn yp yn zp zn) = Cell yp yn xn xp zp zn
+
+---------------------------------------------------------------------
+-- 90-degree Cube rotation helper function
+-- These are helper functions used for rotating layers and not for
+-- viewing total rotations of the Rubiks cube, which are handled
+-- separately by the View using a rotation matrix.
+
+-- Unexported
+
+rotateCube :: Axis -> Rotation -> Cube -> Cube
+rotateCube XAxis Pos90 = (map . map . map) (rotateCell XAxis Pos90)
+                      . map reverse . transpose
+rotateCube XAxis Neg90 = (map . map . map) (rotateCell XAxis Neg90)
+                      . transpose . map reverse
+rotateCube YAxis Pos90 = (map . map . map) (rotateCell YAxis Pos90)
+                      . map transpose . transpose
+                      . map reverse . map transpose
+rotateCube YAxis Neg90 = (map . map . map) (rotateCell YAxis Neg90)
+                      . map transpose . map reverse
+                      . transpose . map transpose
+rotateCube ZAxis Pos90 = (map . map . map) (rotateCell ZAxis Pos90)
+                      . map ( map reverse . transpose )
+rotateCube ZAxis Neg90 = (map . map . map) (rotateCell ZAxis Neg90)
+                      . map ( transpose . map reverse )
+
+-- =============================================================== --
+-- Modeling total rotations of the cube for visualization
+
+---------------------------------------------------------------------
+-- Vector and matrix operations
+
+-- Exported
+
+prodMM :: Matrix -> Matrix -> Matrix
+-- ^Matrix-Matrix product.
+prodMM (r1,r2,r3) m = let (r1',r2',r3') = tr m
+                      in  ( ( dot r1 r1', dot r1 r2', dot r1 r3' )
+                          , ( dot r2 r2', dot r2 r2', dot r2 r3' )
+                          , ( dot r3 r3', dot r3 r2', dot r3 r3' )
+                          )
+
+prodMV :: Matrix -> Vec3 -> Vec3
+-- ^Matrix-vector product.
+prodMV (r1,r2,r3) v = ( dot r1 v, dot r2 v, dot r3 v )
+
+-- Unexported
+
+tr :: Matrix -> Matrix
+-- ^Matrix transpose
+tr ( (x1, y1, z1), (x2, y2, z2), (x3, y3, z3) ) = ( (x1, x2, x3)
+                                                  , (y1, y2, y3)
+                                                  , (z1, z2, z3) )
+
+dot :: Vec3 -> Vec3 -> Float
+-- ^Vector-Vector dot product.
+dot (x1,y1,z1) (x2,y2,z2) = x1 * x2 + y1 * y2 + z1 * z2
+
+---------------------------------------------------------------------
+-- Translating and rotating paths
+
+-- Exported
+
+translatePath :: Vec3 -> Path3D -> Path3D
+-- ^Translate all vectors in a path by the given vector.
+translatePath (dx,dy,dz) = map go
+    where go (x,y,z) = (x + dx, y + dy, z + dz)
+
+rotatePath :: Matrix -> Path3D -> Path3D
+-- ^Rotate all vectors in a path using the given rotation matrix.
+rotatePath m = map ( prodMV m )
+
+---------------------------------------------------------------------
+-- Rotation matrices
+
+rotXMat :: Float -> Matrix
+-- ^Rotatation about the positive x axis by t ratians.
+rotXMat t = ( ( 1,     0,      0 )
+            , ( 0, cos t, -sin t )
+            , ( 0, sin t,  cos t )
+            )
+
+rotYMat :: Float -> Matrix
+-- ^Rotation about the positive y axis by t radians.
+rotYMat t = ( (  cos t, 0, sin t )
+            , (      0, 1,     0 )
+            , ( -sin t, 0, cos t )
+            )
+
+rotZMat :: Float -> Matrix
+-- ^Rotation about the positive z axis by t radians.
+rotZMat t = ( ( cos t, -sin t, 0 )
+            , ( sin t,  cos t, 0 )
+            , (     0,      0, 1 )
+            )

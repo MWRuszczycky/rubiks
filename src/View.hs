@@ -6,7 +6,39 @@ import qualified Graphics.Gloss as G
 import qualified Model          as M
 
 renderGame :: M.Game -> G.Picture
-renderGame g = ( renderFace . M.faceZneg . M.cube $ g ) <> renderSelected g
+renderGame g = G.pictures . map go $ squares
+    where go = renderSquare ( rotYMat (M.theta g) )
+
+renderSquare :: Matrix -> Square -> G.Picture
+renderSquare r (Square f b ps n) = G.color (renderColor f)
+                                   . G.polygon
+                                   . project 250
+                                   . rotate r $ ps
+
+project :: Float -> Path3D -> G.Path
+project d = map go
+    where go (x,y,z) | z > d     = (0, 0)
+                     | otherwise = ( x * u, y * u )
+                     where u = 1 - z / d
+
+squares :: [Square]
+squares = [ makeSquare M.Red M.Hidden noRot (0, 0, 60)
+          , makeSquare M.Green M.Hidden ( rotYMat (pi / 2) ) (-20, 0, 40)
+          ]
+
+makeSquare :: M.Color -> M.Color -> Matrix -> Vec3 -> Square
+makeSquare f b r t = Square f b (translate t . rotate r $ ps) (mvProd r dv)
+    where dv = (0, 0, -1)
+          ps = [ ( -20, -20, 0 )
+               , (  20, -20, 0 )
+               , (  20,  20, 0 )
+               , ( -20,  20, 0 )
+               ]
+
+---------------------------------------------------------------------
+
+renderGame' :: M.Game -> G.Picture
+renderGame' g = ( renderFace . M.faceZneg . M.cube $ g ) <> renderSelected g
 
 renderFace :: M.Face -> G.Picture
 renderFace xs = G.pictures . map go $ indexed
