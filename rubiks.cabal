@@ -19,8 +19,10 @@ executable             rubiks
   build-depends:       base >= 4.7 && < 5
                      , gloss
   other-modules:       Controller
-                     , Model
+                     , Model.Cube
+                     , Model.Geometry
+                     , Model.Graphics
+                     , Model.Resources
+                     , Model.Types
                      , Paths_rubiks
-                     , Resources
-                     , Types
                      , View

@@ -1,7 +1,7 @@
 import qualified Graphics.Gloss as G
-import qualified Types          as T
-import Model                         ( rotXMat    )
-import Resources                     ( solved     )
+import qualified Model.Types    as T
+import Model.Geometry                ( rotXMat    )
+import Model.Resources               ( solved     )
 import View                          ( renderGame )
 import Controller                    ( routeEvent )
 

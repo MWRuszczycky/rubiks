@@ -1,7 +1,7 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances    #-}
 
-module Types
+module Model.Types
  ( -- Modeling game state
    Game     (..)
    -- Modeling the Rubiks cube and layer rotations

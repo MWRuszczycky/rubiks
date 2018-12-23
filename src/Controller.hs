@@ -4,8 +4,8 @@ module Controller
 
 import qualified Graphics.Gloss.Interface.IO.Interact as G
 import qualified Graphics.Gloss                       as G
-import qualified Types                                as T
-import qualified Model                                as M
+import qualified Model.Types                          as T
+import qualified Model.Geometry                       as M
 import Data.List                                           ( foldl' )
 
 routeEvent :: G.Event -> T.Game -> T.Game

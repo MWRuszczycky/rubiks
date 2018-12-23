@@ -1,10 +1,10 @@
-module Resources
+module Model.Resources
     ( solved
     ) where
 
-import Types ( Cell  (..)
-             , Color (..)
-             , Cube  (..) )
+import Model.Types  ( Cell  (..)
+                    , Color (..)
+                    , Cube  (..) )
 
 -- =============================================================== --
 -- Solved Rubiks cube

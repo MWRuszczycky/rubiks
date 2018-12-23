@@ -1,33 +1,27 @@
-module Model
+module Model.Cube
     ( -- Getting the faces of the cube
       cellFace
     , cubeFace
       -- Rotating each layer of the cube
     , rotateLayer
-      -- Total rotations for visualization
-    , dot
-    , cross
-    , prodMM
-    , prodMV
-    , rotatePath
-    , rotXMat
-    , rotYMat
-    , rotZMat
-    , translatePath
     ) where
 
-import Data.List ( transpose     )
-import Types     ( Axis     (..)
-                 , Cell     (..)
-                 , Color    (..)
-                 , Cube     (..)
-                 , Face     (..)
-                 , Layer    (..)
-                 , Matrix   (..)
-                 , Pole     (..)
-                 , Rotation (..)
-                 , Vec3     (..)
-                 , Path3D   (..) )
+-- =============================================================== --
+-- Manages the internal model representation of the Rubiks cube
+-- =============================================================== --
+
+import Data.List    ( transpose     )
+import Model.Types  ( Axis     (..)
+                    , Cell     (..)
+                    , Color    (..)
+                    , Cube     (..)
+                    , Face     (..)
+                    , Layer    (..)
+                    , Matrix   (..)
+                    , Pole     (..)
+                    , Rotation (..)
+                    , Vec3     (..)
+                    , Path3D   (..) )
 
 -- =============================================================== --
 -- Getting the faces of the cube
@@ -137,86 +131,3 @@ rotateCube ZAxis Pos90 = (map . map . map) (rotateCell ZAxis Pos90)
                       . map ( map reverse . transpose )
 rotateCube ZAxis Neg90 = (map . map . map) (rotateCell ZAxis Neg90)
                       . map ( transpose . map reverse )
-
--- =============================================================== --
--- Modeling total rotations of the cube for visualization
---
--- These functions are used to manipulate the entire cube for
--- visualization during rendering given its current configuration.
--- They are not used to manage or change the current configuration.
-
----------------------------------------------------------------------
--- Vector and matrix operations
-
--- Exported
-
-dot :: Vec3 -> Vec3 -> Float
--- ^Vector-Vector dot product.
-dot (x1,y1,z1) (x2,y2,z2) = x1 * x2 + y1 * y2 + z1 * z2
-
-cross :: Vec3 -> Vec3 -> Vec3
--- ^Compute the cross product of two vectors.
-cross (x1,y1,z1) (x2,y2,z2) = ( y1 * z2 - z1 * y2
-                              , z1 * x2 - x1 * z2
-                              , x1 * y2 - y1 * x2
-                              )
-
-prodMM :: Matrix -> Matrix -> Matrix
--- ^Matrix-Matrix product.
-prodMM (r1,r2,r3) m = let (r1',r2',r3') = tr m
-                      in  ( ( dot r1 r1', dot r1 r2', dot r1 r3' )
-                          , ( dot r2 r1', dot r2 r2', dot r2 r3' )
-                          , ( dot r3 r1', dot r3 r2', dot r3 r3' )
-                          )
-
-prodMV :: Matrix -> Vec3 -> Vec3
--- ^Matrix-vector product.
-prodMV (r1,r2,r3) v = ( dot r1 v, dot r2 v, dot r3 v )
-
--- Unexported
-
-tr :: Matrix -> Matrix
--- ^Matrix transpose
-tr ( (x1, y1, z1)
-   , (x2, y2, z2)
-   , (x3, y3, z3) ) = ( (x1, x2, x3)
-                      , (y1, y2, y3)
-                      , (z1, z2, z3) )
-
----------------------------------------------------------------------
--- Translating and rotating paths
-
--- Exported
-
-translatePath :: Vec3 -> Path3D -> Path3D
--- ^Translate all vectors in a path by the given vector.
-translatePath (dx,dy,dz) = map go
-    where go (x,y,z) = (x + dx, y + dy, z + dz)
-
-rotatePath :: Matrix -> Path3D -> Path3D
--- ^Rotate all vectors in a path using the given rotation matrix.
-rotatePath m = map ( prodMV m )
-
----------------------------------------------------------------------
--- Rotation matrices
-
-rotXMat :: Float -> Matrix
--- ^Rotatation about the positive x axis by t ratians.
-rotXMat t = ( ( 1,     0,      0 )
-            , ( 0, cos t, -sin t )
-            , ( 0, sin t,  cos t )
-            )
-
-rotYMat :: Float -> Matrix
--- ^Rotation about the positive y axis by t radians.
-rotYMat t = ( (  cos t, 0, sin t )
-            , (      0, 1,     0 )
-            , ( -sin t, 0, cos t )
-            )
-
-rotZMat :: Float -> Matrix
--- ^Rotation about the positive z axis by t radians.
-rotZMat t = ( ( cos t, -sin t, 0 )
-            , ( sin t,  cos t, 0 )
-            , (     0,      0, 1 )
-            )

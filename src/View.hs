@@ -2,9 +2,14 @@ module View
     ( renderGame
     ) where
 
+-- =============================================================== --
+-- Interface with Gloss for rendering to output
+-- =============================================================== --
+
 import qualified Graphics.Gloss as G
-import qualified Types          as T
-import qualified Model          as M
+import qualified Model.Types    as T
+import qualified Model.Graphics as M
+import qualified Model.Geometry as M
 import Data.List                     ( sortOn
                                      , foldl' )
 
@@ -24,63 +29,18 @@ renderCube :: T.Matrix -> T.Cube -> G.Picture
 -- pushed back sufficiently far so as not to collide with the view
 -- screen after applying the rotation.
 renderCube m c =
-    let move   = moveSquare (M.translatePath (0,0,100) . M.rotatePath m)
+    let move   = M.moveSquare (M.translatePath (0,0,100) . M.rotatePath m)
         render = renderSquare 250 . move
     in  G.pictures . snd . unzip  -- Cleanup after sorting and render
         . reverse . sortOn fst    -- Sort on the depth cues for z-placement
         . map render              -- Rotate all faces together and push back
-        . concat $ [ faceToSquares T.XAxis T.Pos c
-                   , faceToSquares T.XAxis T.Neg c
-                   , faceToSquares T.YAxis T.Pos c
-                   , faceToSquares T.YAxis T.Neg c
-                   , faceToSquares T.ZAxis T.Pos c
-                   , faceToSquares T.ZAxis T.Neg c
+        . concat $ [ M.faceToSquares T.XAxis T.Pos c
+                   , M.faceToSquares T.XAxis T.Neg c
+                   , M.faceToSquares T.YAxis T.Pos c
+                   , M.faceToSquares T.YAxis T.Neg c
+                   , M.faceToSquares T.ZAxis T.Pos c
+                   , M.faceToSquares T.ZAxis T.Neg c
                    ]
-
----------------------------------------------------------------------
--- Rendering each face of the cube
-
-faceToSquares :: T.Axis -> T.Pole -> T.Cube -> [T.Square]
--- ^Extract each face from the cube and position accordingly in the
--- initial unrotated state.
-faceToSquares a p = map (moveSquare (positionFace a p) )
-                    . baseFace
-                    . M.cubeFace a p
-
-positionFace :: T.Axis -> T.Pole -> T.Path3D -> T.Path3D
--- ^Position each face of the cube in the unrotated state according
--- to its axis and pole. Each face is generated as lying in the (x,y)
--- plane facing the negative pole of the z-axis. It needs to be
--- rotated to the correct pole and then translated to the correct
--- position on the cube. For example, the positve-x face needs to be
--- rotated minus 90-degrees along the y-axis, which points down, and
--- then pushed right half the width of the cube (64 pixels). An extra
--- 2 pixels are added to each face position to prevent orthogonal
--- edges from touching. This looks nicer and also provides better
--- depth cues when rendering the faces in order of depth.
-positionFace T.XAxis T.Pos = M.translatePath (66, 0,  0)
-                             . M.rotatePath ( M.rotYMat (-pi/2) )
-positionFace T.XAxis T.Neg = M.translatePath (-66, 0, 0)
-                             . M.rotatePath ( M.rotYMat (pi/2)  )
-positionFace T.YAxis T.Pos = M.translatePath (0, 66,  0)
-                             . M.rotatePath ( M.rotXMat (pi/2)  )
-positionFace T.YAxis T.Neg = M.translatePath (0,-66,  0)
-                             . M.rotatePath ( M.rotXMat (-pi/2) )
-positionFace T.ZAxis T.Pos = M.translatePath (0,  0, 66)
-                             . M.rotatePath ( M.rotXMat (pi)    )
-positionFace T.ZAxis T.Neg = M.translatePath (0,  0,-66)
-
-baseFace :: T.Face -> [T.Square]
--- ^Convert a cube face into a list of squares with renedring
--- information. The face is created in the standard position and thus
--- faces the negative pole of the z-axis and lies in the (x,y)-plane.
--- The squares in each face are separated by 4 pixel spacers. Since
--- each square is 40 x 40 pixels, the face is 128 x 128 pixels.
-baseFace cs = map posSq sqs
-    where go x          = fromIntegral $ 44 * ( x - 1 )
-          posSq (s,i,j) = moveSquare ( M.translatePath (go j, go i, 0) ) s
-          sqs           = [ (baseSquare (cs !! i !! j) T.Hidden, i, j)
-                            | i <- [0..2] , j <- [0..2] ]
 
 ---------------------------------------------------------------------
 -- Rendering squares
@@ -110,20 +70,6 @@ colorSquare d (T.Square f b ps)
     where (t:u:v:w:_) = map (+ (0,0,d)) ps
           n           = M.cross (w - t) (u - t)
           e           = foldl' (+) (0,0,0) [t, u, v, w]
-
-moveSquare :: (T.Path3D -> T.Path3D) -> T.Square -> T.Square
--- ^Helper function for positioning a Square according to some
--- transformation function.
-moveSquare go s = s { T.points = go $ T.points s}
-
-baseSquare :: T.Color -> T.Color -> T.Square
--- ^Initial standard form the square given its exposed-facing-front
--- color, and its hidden-back color. Squares are 40 x 40 pixels.
-baseSquare f b = T.Square f b [ ( -20, -20, 0 )
-                              , (  20, -20, 0 )
-                              , (  20,  20, 0 )
-                              , ( -20,  20, 0 )
-                              ]
 
 ---------------------------------------------------------------------
 -- Gloss-Model interface functions
