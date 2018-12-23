@@ -1,3 +1,6 @@
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances    #-}
+
 module Types
  ( -- Modeling game state
    Game     (..)
@@ -23,7 +26,6 @@ module Types
 -- Types for modeling the game state
 
 data Game = Game { cube     :: Cube
-                 , selected :: Maybe (Int, Int)
                  , rotation :: Matrix
                  , rotMove  :: Maybe (Float, Float)
                  }
@@ -131,6 +133,14 @@ type Triple a = (a, a, a)
 
 -- |Point in 3-space.
 type Vec3 = Triple Float
+
+instance Num Vec3 where
+    (+) (x,y,z) (x',y',z') = (x + x', y + y', z + z')
+    (-) (x,y,z) (x',y',z') = (x - x', y - y', z - z')
+    fromInteger x          = (fromInteger x, fromInteger x, fromInteger x)
+    (*) (x,y,z) (x',y',z') = (x * x', y * y', z * z')
+    abs (x,y,z)            = (abs x, abs y, abs z)
+    signum (x,y,z)         = ( signum x, signum y, signum z )
 
 -- |Path in 3-space.
 type Path3D = [Vec3]

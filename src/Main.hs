@@ -3,19 +3,17 @@ import qualified Types          as T
 import Model                         ( rotXMat    )
 import Resources                     ( solved     )
 import View                          ( renderGame )
-import Controller                    ( routeEvent
-                                     , updateTime )
+import Controller                    ( routeEvent )
 
 main :: IO ()
 main = do
     let (g, w) = initGame
-    G.play w G.black 10 g renderGame routeEvent updateTime
+    G.play w G.black 0 g renderGame routeEvent ( \ _ -> id )
 
 initGame :: ( T.Game, G.Display )
 initGame = ( g, w )
     where w = G.InWindow "Rubiks" (300, 300) (60, 60)
           g = T.Game { T.cube     = solved
-                     , T.selected = Nothing
                      , T.rotation = rotXMat 0
                      , T.rotMove  = Nothing
                      }

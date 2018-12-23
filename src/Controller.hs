@@ -1,6 +1,5 @@
 module Controller
     ( routeEvent
-    , updateTime
     ) where
 
 import qualified Graphics.Gloss.Interface.IO.Interact as G
@@ -9,62 +8,22 @@ import qualified Types                                as T
 import qualified Model                                as M
 import Data.List                                           ( foldl' )
 
--- routeEvent :: G.Event -> T.Game -> T.Game
--- routeEvent _ = id
-
 routeEvent :: G.Event -> T.Game -> T.Game
 routeEvent (G.EventKey (G.MouseButton G.LeftButton) G.Down _ xy    ) g
     = g { T.rotMove = Just xy }
 routeEvent (G.EventKey (G.MouseButton G.LeftButton) G.Up   _ _     ) g
     = g { T.rotMove = Nothing }
-routeEvent (G.EventMotion xy)                                   g
-    = rotate g (T.rotMove g) xy 
--- routeEvent (G.EventKey (G.SpecialKey  G.KeyDown   ) G.Down _ _     ) g
---     = rotate M.XAxis M.Pos90 g
--- routeEvent (G.EventKey (G.SpecialKey  G.KeyUp     ) G.Down _ _     ) g
---     = rotate M.XAxis M.Neg90 g
--- routeEvent (G.EventKey (G.SpecialKey  G.KeyRight  ) G.Down _ _     ) g
---     = rotate M.YAxis M.Neg90 g
--- routeEvent (G.EventKey (G.SpecialKey  G.KeyLeft   ) G.Down _ _     ) g
---     = rotate M.YAxis M.Pos90 g
--- routeEvent (G.EventKey (G.MouseButton G.LeftButton) G.Down _ (r,c) ) g
---     = selectCell r c g
+routeEvent (G.EventMotion xy)                                        g
+    = rotateCube g (T.rotMove g) xy
 routeEvent _                                                         g
     = g
 
-rotate :: T.Game -> Maybe (Float, Float) -> (Float, Float) -> T.Game
-rotate g Nothing       _        = g
-rotate g (Just (x, y)) (x', y') = let dtx = (x - x') / 100
-                                      dty = (y' - y) / 100
-                                      r   = foldr M.prodMM (T.rotation g)
-                                                 [ M.rotXMat dty
-                                                 , M.rotYMat dtx ]
-                                  in  g { T.rotMove  = Just (x', y')
-                                        , T.rotation = r
-                                        }
-
-updateTime :: Float -> T.Game -> T.Game
-updateTime _ = id
-
--- updateTime :: Float -> T.Game -> T.Game
--- updateTime dt g = g { T.theta = th }
---     where th = T.theta g + dt * 2 * pi / 5
-
--- rotate :: M.Axis -> M.Rotation -> M.Game -> M.Game
--- rotate M.XAxis r g = maybe g ( go $ M.cube g ) . M.selected $ g
---     where go c (_,i) = g { M.cube = M.rotateLayer M.XAxis r i c }
--- rotate M.YAxis r g = maybe g ( go $ M.cube g ) . M.selected $ g
---     where go c (i,_) = g { M.cube = M.rotateLayer M.YAxis r i c }
--- rotate M.ZAxis r g = g
-
--- selectCell :: Float -> Float -> M.Game -> M.Game
--- selectCell r c g = g { M.selected = mbRC }
---     where mbRC = (,) <$> getCoordinate c <*> getCoordinate r
-
--- getCoordinate :: Float -> Maybe Int
--- getCoordinate t
---     | t < -32           = Nothing
---     | t < -12           = Just 0
---     | t > -10 && t < 10 = Just 1
---     | t >  12 && t < 32 = Just 2
---     | otherwise         = Nothing
+rotateCube :: T.Game -> Maybe (Float, Float) -> (Float, Float) -> T.Game
+rotateCube g Nothing       _      = g
+rotateCube g (Just (x,y)) (x',y') =
+    let dtx = (x - x') / 100
+        dty = (y' - y) / 100
+        r   = foldr M.prodMM (T.rotation g) [ M.rotXMat dty , M.rotYMat dtx ]
+      in  g { T.rotMove  = Just (x', y')
+            , T.rotation = r
+            }

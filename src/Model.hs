@@ -7,16 +7,13 @@ module Model
       -- Total rotations for visualization
     , dot
     , cross
-    , diffVV
-    , sumVV
-    , magVV
     , prodMM
     , prodMV
-    , translatePath
     , rotatePath
     , rotXMat
     , rotYMat
     , rotZMat
+    , translatePath
     ) where
 
 import Data.List ( transpose     )
@@ -69,6 +66,10 @@ cubeFace ZAxis Neg = (map . map) (cellFace ZAxis Neg) . head
 
 -- =============================================================== --
 -- Modeling cube manipulation via layer rotations
+--
+-- These functions are not used for visualization of the cube.
+-- Instead, they are used to model the configuration of the cube in
+-- a standard, unrotated orientation.
 
 ---------------------------------------------------------------------
 -- Layer rotations
@@ -139,6 +140,10 @@ rotateCube ZAxis Neg90 = (map . map . map) (rotateCell ZAxis Neg90)
 
 -- =============================================================== --
 -- Modeling total rotations of the cube for visualization
+--
+-- These functions are used to manipulate the entire cube for
+-- visualization during rendering given its current configuration.
+-- They are not used to manage or change the current configuration.
 
 ---------------------------------------------------------------------
 -- Vector and matrix operations
@@ -156,15 +161,6 @@ cross (x1,y1,z1) (x2,y2,z2) = ( y1 * z2 - z1 * y2
                               , x1 * y2 - y1 * x2
                               )
 
-diffVV :: Vec3 -> Vec3 -> Vec3
-diffVV (x1,y1,z1) (x2,y2,z2) = (x1 - x2, y1 - y2, z1 - z2)
-
-sumVV :: Vec3 -> Vec3 -> Vec3
-sumVV (x1,y1,z1) (x2,y2,z2) = (x1+x2, y1+y2, z1+z2)
-
-magVV :: Vec3 -> Float
-magVV v = dot v v
-
 prodMM :: Matrix -> Matrix -> Matrix
 -- ^Matrix-Matrix product.
 prodMM (r1,r2,r3) m = let (r1',r2',r3') = tr m
@@ -181,10 +177,11 @@ prodMV (r1,r2,r3) v = ( dot r1 v, dot r2 v, dot r3 v )
 
 tr :: Matrix -> Matrix
 -- ^Matrix transpose
-tr ( (x1, y1, z1), (x2, y2, z2), (x3, y3, z3) ) = ( (x1, x2, x3)
-                                                  , (y1, y2, y3)
-                                                  , (z1, z2, z3)
-                                                  )
+tr ( (x1, y1, z1)
+   , (x2, y2, z2)
+   , (x3, y3, z3) ) = ( (x1, x2, x3)
+                      , (y1, y2, y3)
+                      , (z1, z2, z3) )
 
 ---------------------------------------------------------------------
 -- Translating and rotating paths
