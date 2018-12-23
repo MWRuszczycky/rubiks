@@ -26,12 +26,11 @@ renderCube :: T.Game -> G.Picture
 -- ^Given a rotation matrix, convert a Rubiks cube model into a Gloss
 -- picture that can be viewed. The Rubiks cube is always pushed back
 -- sufficiently far so as to always be fully behind the screen.
-renderCube g = let scrDist = T.toScreen g
-               in  G.pictures . snd . unzip     -- Render the final cube image
-                   . reverse . sortOn fst       -- Rendering order of squares
-                   . map (renderSquare scrDist) -- is based on the depth cues.
-                   . M.cubeToSquares (M.positionCube g)
-                   $ T.cube g
+renderCube g = G.pictures . snd . unzip     -- Render the final cube image
+               . reverse . sortOn fst       -- Rendering order of squares
+               . map (renderSquare g)       -- is based on the depth cues.
+               . M.cubeToSquares (M.positionCube g)
+               $ T.cube g
 
 ---------------------------------------------------------------------
 -- Rendering squares
@@ -39,23 +38,28 @@ renderCube g = let scrDist = T.toScreen g
 -- each cell in the Rubiks cube. These are used to build up each face
 -- of the cube, which are then used to build the cube.
 
-renderSquare :: Float -> T.Square -> (Float, G.Picture)
+renderSquare :: T.Game -> T.Square -> (Float, G.Picture)
 -- ^Provided a screen distance, convert a renderable square to a
 -- Gloss polygon together with a depth cue. Antialiasing is mimiced
 -- by applying a semi-transparent border.
-renderSquare d s = ( depth, fill <> border )
-    where clr    = squareColor d s
-          fill   = G.color clr . G.polygon $ ps
-          border = G.color (G.withAlpha 0.5 clr) . G.lineLoop $ ps
-          ps     = [ (x, y) | (x,y,_) <- T.points . M.project d $ s ]
-          depth  = minimum [ z | (_,_,z) <- T.points s ]
+renderSquare g s = ( depth, fill <> brdr )
+    where clr  = squareColor g s
+          fill = G.color clr . G.polygon $ ps
+          brdr = G.color (G.withAlpha 0.5 clr) . G.lineLoop $ ps
+          ps   = [ (x,y) | (x,y,_) <- T.points . M.project (T.toScreen g) $ s ]
+          depth = minimum [ z | (_,_,z) <- T.points s ]
 
-squareColor :: Float -> T.Square -> G.Color -- G.Picture -> G.Picture
+squareColor :: T.Game -> T.Square -> G.Color
 -- Determine the Gloss color of the square depending on whether it is
--- facing towards or away from the viewer.
-squareColor d s
-    | M.isFacingViewer d s = renderColor . T.front $ s
-    | otherwise            = renderColor . T.back  $ s
+-- facing towards or away from the viewer and selected or not.
+squareColor g s
+    | not . M.isFacingViewer d $ s = renderColor . T.back $ s
+    | isSelected                   = G.bright . renderColor . T.front $ s
+    | otherwise                    = renderColor. T.front $ s
+    where d = T.toScreen g
+          isSelected = case T.mode g of
+                            T.Selected _ x -> x == T.locus s
+                            otherwise      -> False
 
 ---------------------------------------------------------------------
 -- Gloss-Model interface functions

@@ -153,6 +153,9 @@ data Square = Square { locus  :: Locus  -- How to find the corresponding cell
 -- |Polymorphic triple used to build 3D-vectors and 3x3-matrices.
 type Triple a = (a, a, a)
 
+-- |Point in 2-space.
+type Vec2 = (Float, Float)
+
 -- |Point in 3-space.
 type Vec3 = Triple Float
 
@@ -162,7 +165,7 @@ instance Num Vec3 where
     fromInteger x          = (fromInteger x, fromInteger x, fromInteger x)
     (*) (x,y,z) (x',y',z') = (x * x', y * y', z * z')
     abs (x,y,z)            = (abs x, abs y, abs z)
-    signum (x,y,z)         = ( signum x, signum y, signum z )
+    signum (x,y,z)         = (signum x, signum y, signum z)
 
 -- |Path in 3-space.
 type Path3D = [Vec3]

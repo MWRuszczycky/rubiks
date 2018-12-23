@@ -11,6 +11,7 @@ module Model.Graphics
     , project
       -- 3D-Queries
     , isFacingViewer
+    , isOnSquare
     ) where
 
 -- =============================================================== --
@@ -151,3 +152,9 @@ isFacingViewer d (Square _ _ _ ps) = M.dot n e < 0
     where (t:u:v:w:_) = map (+ (0,0,d)) ps
           n           = M.cross (w - t) (u - t)
           e           = foldl' (+) (0,0,0) [t, u, v, w]
+
+isOnSquare :: Float -> (Float, Float) -> Square -> Bool
+-- ^Determine whether the mouse is on top of a facing square as
+-- projected onto the screen.
+isOnSquare d xy s = isFacingViewer d s && isInside s
+    where isInside = M.inConvex2D xy . points . project d

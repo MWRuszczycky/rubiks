@@ -7,29 +7,33 @@ import qualified Graphics.Gloss                       as G
 import qualified Model.Types                          as T
 import qualified Model.Geometry                       as M
 import qualified Model.Graphics                       as M
-import Data.List                                           ( foldl' )
+import Data.List                                           ( foldl'
+                                                           , find   )
 
 routeEvent :: G.Event -> T.Game -> T.Game
 routeEvent (G.EventKey (G.MouseButton G.LeftButton) G.Down _ xy    ) g
-    = routeClick g xy
+    = mouseDown xy g
 routeEvent (G.EventKey (G.MouseButton G.LeftButton) G.Up   _ _     ) g
     = g { T.mode = T.Idle }
 routeEvent (G.EventMotion xy)                                        g
-    = rotateCube g (T.mode g) xy
+    = movement (T.mode g) xy g
 routeEvent _                                                         g
     = g
 
-routeClick :: T.Game -> G.Point -> T.Game
-routeClick g (x,y) = g { T.mode = T.RotationMove (x,y) }
-    -- let d   = T.toScreen g
-    --     sqs = map (project d) . filter ( isFacingviewer d ) $ M.cubeToSquares
+mouseDown :: G.Point -> T.Game -> T.Game
+mouseDown xy g = let sqs = M.cubeToSquares (M.positionCube g) . T.cube $ g
+                 in  case find ( M.isOnSquare (T.toScreen g) xy ) sqs of
+                          Nothing -> g { T.mode = T.RotationMove xy }
+                          Just sq -> g { T.mode = T.Selected xy (T.locus sq) }
 
-rotateCube :: T.Game -> T.Mode -> (Float, Float) -> T.Game
-rotateCube g T.Idle       _      = g
-rotateCube g (T.RotationMove (x,y)) (x',y') =
+movement :: T.Mode -> (Float, Float) -> T.Game -> T.Game
+movement T.Idle            _     = id
+movement (T.Selected xy _) _     = id
+movement (T.RotationMove xy) xy' = rotateCube xy xy'
+
+rotateCube :: (Float, Float) -> (Float, Float) -> T.Game -> T.Game
+rotateCube (x,y) (x',y') g =
     let dtx = (x - x') / 100
         dty = (y' - y) / 100
         r   = foldr M.prodMM (T.rotation g) [ M.rotXMat dty , M.rotYMat dtx ]
-      in  g { T.mode  = T.RotationMove (x', y')
-            , T.rotation = r
-            }
+    in  g { T.mode  = T.RotationMove (x', y') , T.rotation = r }

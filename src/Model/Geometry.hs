@@ -4,6 +4,7 @@ module Model.Geometry
     , cross
     , prodMM
     , prodMV
+    , inConvex2D
       -- Translating and rotating 3D-paths
     , rotatePath
     , translatePath
@@ -56,6 +57,15 @@ prodMM (r1,r2,r3) m = let (r1',r2',r3') = tr m
 prodMV :: Matrix -> Vec3 -> Vec3
 -- ^Matrix-vector product.
 prodMV (r1,r2,r3) v = ( dot r1 v, dot r2 v, dot r3 v )
+
+inConvex2D :: (Float, Float) -> Path3D -> Bool
+-- ^Flatten a 3D path by removing the z-coordinate and assuming the
+-- result is convex, determine whether a 2D point lies inside of it.
+inConvex2D (x,y) ps = length ps > 2 && ( all (>0) zs || all (<0) zs )
+    where ws = [ (a,b,0) | (a,b,_) <- ps ]
+          us = map ((-) (x,y,0)) ws
+          vs = zipWith (-) (tail ws ++ [head ws]) ws
+          zs = zipWith ( \ u v -> ( \ (_,_,z) -> z ) . cross u $ v ) us vs
 
 -- Unexported
 
