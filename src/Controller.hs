@@ -10,20 +10,20 @@ import Data.List                                           ( foldl' )
 
 routeEvent :: G.Event -> T.Game -> T.Game
 routeEvent (G.EventKey (G.MouseButton G.LeftButton) G.Down _ xy    ) g
-    = g { T.rotMove = Just xy }
+    = g { T.mode = T.RotationMove xy }
 routeEvent (G.EventKey (G.MouseButton G.LeftButton) G.Up   _ _     ) g
-    = g { T.rotMove = Nothing }
+    = g { T.mode = T.Idle }
 routeEvent (G.EventMotion xy)                                        g
-    = rotateCube g (T.rotMove g) xy
+    = rotateCube g (T.mode g) xy
 routeEvent _                                                         g
     = g
 
-rotateCube :: T.Game -> Maybe (Float, Float) -> (Float, Float) -> T.Game
-rotateCube g Nothing       _      = g
-rotateCube g (Just (x,y)) (x',y') =
+rotateCube :: T.Game -> T.Mode -> (Float, Float) -> T.Game
+rotateCube g T.Idle       _      = g
+rotateCube g (T.RotationMove (x,y)) (x',y') =
     let dtx = (x - x') / 100
         dty = (y' - y) / 100
         r   = foldr M.prodMM (T.rotation g) [ M.rotXMat dty , M.rotYMat dtx ]
-      in  g { T.rotMove  = Just (x', y')
+      in  g { T.mode  = T.RotationMove (x', y')
             , T.rotation = r
             }

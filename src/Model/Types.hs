@@ -4,6 +4,7 @@
 module Model.Types
  ( -- Modeling game state
    Game      (..)
+ , Mode      (..)
    -- Modeling the Rubiks cube and layer rotations
  , Cell      (..)
  , Color     (..)
@@ -27,10 +28,20 @@ module Model.Types
 -- =============================================================== --
 -- Types for modeling the game state
 
-data Game = Game { cube     :: Cube
-                 , rotation :: Matrix
-                 , rotMove  :: Maybe (Float, Float)
-                 }
+data Game = Game {
+      cube     :: Cube   -- Rubiks cube model state
+    , rotation :: Matrix -- User-rotation of the cube
+    , mode     :: Mode   -- What the user is doing
+    }
+
+-- |Current game state.
+data Mode = -- Cube is being rotated with last mouse position.
+            RotationMove (Float, Float)
+            -- Layer is being manipulated from screen click position.
+          | Selected (Float, Float) Locus
+            -- Nothing happening
+          | Idle
+           deriving ( Show )
 
 -- =============================================================== --
 -- Types for modeling the cube and rotations of its layers

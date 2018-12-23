@@ -15,5 +15,5 @@ initGame = ( g, w )
     where w = G.InWindow "Rubiks" (300, 300) (60, 60)
           g = T.Game { T.cube     = solved
                      , T.rotation = rotXMat 0
-                     , T.rotMove  = Nothing
+                     , T.mode     = T.Idle
                      }
