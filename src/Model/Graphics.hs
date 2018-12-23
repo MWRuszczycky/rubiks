@@ -1,15 +1,20 @@
 module Model.Graphics
-    ( faceToSquares
+    ( cubeToSquares
+    , faceToSquares
     , positionFace
     , baseFace
     , moveSquare
     , baseSquare
     , isFacingViewer
+    , project
     ) where
 
 -- =============================================================== --
 -- Functions for converting the internal model of the Rubiks cube
 -- into a 3D-representation and 2D-projection.
+--
+-- This is done to always ensure that the cube is fully in front of
+-- the screen and the viewer is fully behind the screen.
 -- =============================================================== --
 
 import qualified Model.Geometry as M
@@ -29,7 +34,22 @@ import Model.Types                   ( Axis     (..)
                                      , Path3D   (..) )
 
 ---------------------------------------------------------------------
--- Rendering each face of the cube
+-- Rendering each face of the cube and the cube itself as Squares
+
+cubeToSquares :: (Path3D -> Path3D) -> Cube -> [Square]
+-- ^Given a positioning and orienting function for the cube, convert
+-- the cube from the model representation to a completed
+-- 3D-representation using Squares ready for either interrogation by
+-- the Controller or rendering by the View. The origin is at the
+-- center of the screen and does not account for viewer position.
+cubeToSquares movement c = let go = map (moveSquare movement)
+                           in  concatMap go [ faceToSquares XAxis Pos c
+                                            , faceToSquares XAxis Neg c
+                                            , faceToSquares YAxis Pos c
+                                            , faceToSquares YAxis Neg c
+                                            , faceToSquares ZAxis Pos c
+                                            , faceToSquares ZAxis Neg c
+                                            ]
 
 faceToSquares :: Axis -> Pole -> Cube -> [Square]
 -- ^Extract each face from the cube and position accordingly in the
@@ -112,3 +132,11 @@ isFacingViewer d (Square _ _ ps) = M.dot n e < 0
     where (t:u:v:w:_) = map (+ (0,0,d)) ps
           n           = M.cross (w - t) (u - t)
           e           = foldl' (+) (0,0,0) [t, u, v, w]
+
+project :: Float -> Square -> Square
+-- ^Project a Square in 3D-space onto the screen, which is at z = 0.
+-- Squares are assumed to be fully behind the screen.
+project d s = s { points = map go . points $ s}
+    where go (x,y,z) | z > 0     = ( u * x, u * y, 0 )
+                     | otherwise = ( x, y, 0 )
+                     where u = d / ( d + z )

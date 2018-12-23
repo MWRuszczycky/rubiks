@@ -24,22 +24,18 @@ renderGame g = renderCube (T.rotation g) . T.cube $ g
 
 renderCube :: T.Matrix -> T.Cube -> G.Picture
 -- ^Given a rotation matrix, convert a Rubiks cube model into a Gloss
---- picture that can be viewed on the screen. The Rubiks cube is
--- pushed back sufficiently far so as not to collide with the view
--- screen after applying the rotation.
+-- picture that can be viewed. The Rubiks cube is always pushed back
+-- sufficiently far so as to always be fully behind the screen.
 renderCube m c =
-    let move   = M.moveSquare (M.translatePath (0,0,100) . M.rotatePath m)
-        render = renderSquare 250 . move
-    in  G.pictures . snd . unzip  -- Cleanup after sorting and render
-        . reverse . sortOn fst    -- Sort on the depth cues for z-placement
-        . map render              -- Rotate all faces together and push back
-        . concat $ [ M.faceToSquares T.XAxis T.Pos c
-                   , M.faceToSquares T.XAxis T.Neg c
-                   , M.faceToSquares T.YAxis T.Pos c
-                   , M.faceToSquares T.YAxis T.Neg c
-                   , M.faceToSquares T.ZAxis T.Pos c
-                   , M.faceToSquares T.ZAxis T.Neg c
-                   ]
+    let toScreen   = 250                -- Distance from viewer to screen
+        cubeCenter = (0,0,100)          -- Vector from screen to cube center
+        movement   = M.translatePath cubeCenter -- Push the cube back
+                     . M.rotatePath m           -- Rotate cube as viewer wants
+    in  G.pictures . snd . unzip        -- render the final cube image
+        . reverse . sortOn fst          -- Rendering order of squares by depth
+        . map (renderSquare toScreen)   -- Render squares with depth cues
+        . M.cubeToSquares movement $ c  -- Position the cube in 3D-space and
+                                        -- convert to renderable Squares
 
 ---------------------------------------------------------------------
 -- Rendering squares
@@ -48,10 +44,11 @@ renderCube m c =
 -- of the cube, which are then used to build the cube.
 
 renderSquare :: Float -> T.Square -> (Float, G.Picture)
--- ^Provided a focal distance, convert a renderable square to a Gloss
--- polygon together with a depth cue.
+-- ^Provided a screen distance, convert a renderable square to a
+-- Gloss polygon together with a depth cue.
 renderSquare d s = ( depth, pic )
-    where pic   = colorSquare d s . G.polygon . project d $ T.points s
+    where pic   = colorSquare d s . G.polygon $ ps
+          ps    = [ (x, y) | (x,y,_) <- T.points . M.project d $ s ]
           depth = minimum [ z | (_,_,z) <- T.points s ]
 
 colorSquare :: Float -> T.Square -> G.Picture -> G.Picture
@@ -63,14 +60,6 @@ colorSquare d s
 
 ---------------------------------------------------------------------
 -- Gloss-Model interface functions
-
-project :: Float -> T.Path3D -> G.Path
--- ^Convert a Model path in 3-dimensions to a projected Gloss path.
--- The initial argument is the focal length.
-project d = map go
-    where go (x,y,z) | z > 0     = ( u * x, u * y)
-                     | otherwise = ( x, y )
-                     where u = d / ( d + z )
 
 renderColor :: T.Color -> G.Color
 -- ^Map Model colors to Gloss colors.
