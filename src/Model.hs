@@ -169,8 +169,8 @@ prodMM :: Matrix -> Matrix -> Matrix
 -- ^Matrix-Matrix product.
 prodMM (r1,r2,r3) m = let (r1',r2',r3') = tr m
                       in  ( ( dot r1 r1', dot r1 r2', dot r1 r3' )
-                          , ( dot r2 r2', dot r2 r2', dot r2 r3' )
-                          , ( dot r3 r3', dot r3 r2', dot r3 r3' )
+                          , ( dot r2 r1', dot r2 r2', dot r2 r3' )
+                          , ( dot r3 r1', dot r3 r2', dot r3 r3' )
                           )
 
 prodMV :: Matrix -> Vec3 -> Vec3

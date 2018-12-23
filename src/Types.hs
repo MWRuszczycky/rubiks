@@ -24,7 +24,8 @@ module Types
 
 data Game = Game { cube     :: Cube
                  , selected :: Maybe (Int, Int)
-                 , theta    :: Float
+                 , rotation :: Matrix
+                 , rotMove  :: Maybe (Float, Float)
                  }
 
 -- =============================================================== --

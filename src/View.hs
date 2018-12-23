@@ -9,7 +9,7 @@ import Data.List                     ( sortOn
                                      , foldl' )
 
 renderGame :: T.Game -> G.Picture
-renderGame g = renderCube (M.rotYMat (T.theta g)) . T.cube $ g
+renderGame g = renderCube (T.rotation g) . T.cube $ g
 
 -- =============================================================== --
 -- Rendering functions

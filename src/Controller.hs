@@ -6,15 +6,19 @@ module Controller
 import qualified Graphics.Gloss.Interface.IO.Interact as G
 import qualified Graphics.Gloss                       as G
 import qualified Types                                as T
+import qualified Model                                as M
+import Data.List                                           ( foldl' )
+
+-- routeEvent :: G.Event -> T.Game -> T.Game
+-- routeEvent _ = id
 
 routeEvent :: G.Event -> T.Game -> T.Game
-routeEvent _ = id
-
-updateTime :: Float -> T.Game -> T.Game
-updateTime dt g = g { T.theta = th }
-    where th = T.theta g + dt * 2 * pi / 5
-
--- routeEvent :: G.Event -> M.Game -> M.Game
+routeEvent (G.EventKey (G.MouseButton G.LeftButton) G.Down _ xy    ) g
+    = g { T.rotMove = Just xy }
+routeEvent (G.EventKey (G.MouseButton G.LeftButton) G.Up   _ _     ) g
+    = g { T.rotMove = Nothing }
+routeEvent (G.EventMotion xy)                                   g
+    = rotate g (T.rotMove g) xy 
 -- routeEvent (G.EventKey (G.SpecialKey  G.KeyDown   ) G.Down _ _     ) g
 --     = rotate M.XAxis M.Pos90 g
 -- routeEvent (G.EventKey (G.SpecialKey  G.KeyUp     ) G.Down _ _     ) g
@@ -25,8 +29,26 @@ updateTime dt g = g { T.theta = th }
 --     = rotate M.YAxis M.Pos90 g
 -- routeEvent (G.EventKey (G.MouseButton G.LeftButton) G.Down _ (r,c) ) g
 --     = selectCell r c g
--- routeEvent _                                                         g
---     = g
+routeEvent _                                                         g
+    = g
+
+rotate :: T.Game -> Maybe (Float, Float) -> (Float, Float) -> T.Game
+rotate g Nothing       _        = g
+rotate g (Just (x, y)) (x', y') = let dtx = (x - x') / 100
+                                      dty = (y' - y) / 100
+                                      r   = foldr M.prodMM (T.rotation g)
+                                                 [ M.rotXMat dty
+                                                 , M.rotYMat dtx ]
+                                  in  g { T.rotMove  = Just (x', y')
+                                        , T.rotation = r
+                                        }
+
+updateTime :: Float -> T.Game -> T.Game
+updateTime _ = id
+
+-- updateTime :: Float -> T.Game -> T.Game
+-- updateTime dt g = g { T.theta = th }
+--     where th = T.theta g + dt * 2 * pi / 5
 
 -- rotate :: M.Axis -> M.Rotation -> M.Game -> M.Game
 -- rotate M.XAxis r g = maybe g ( go $ M.cube g ) . M.selected $ g
