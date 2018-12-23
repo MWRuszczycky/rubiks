@@ -17,25 +17,21 @@ import Data.List                     ( sortOn   )
 
 renderGame :: T.Game -> G.Picture
 -- ^Main rendering hub.
-renderGame g = renderCube (T.rotation g) . T.cube $ g
+renderGame = renderCube
 
 ---------------------------------------------------------------------
 -- Rendering the Rubiks cube
 
-renderCube :: T.Matrix -> T.Cube -> G.Picture
+renderCube :: T.Game -> G.Picture
 -- ^Given a rotation matrix, convert a Rubiks cube model into a Gloss
 -- picture that can be viewed. The Rubiks cube is always pushed back
 -- sufficiently far so as to always be fully behind the screen.
-renderCube m c =
-    let toScreen   = 250                -- Distance from viewer to screen
-        cubeCenter = (0,0,100)          -- Vector from screen to cube center
-        movement   = M.translatePath cubeCenter -- Push the cube back
-                     . M.rotatePath m           -- Rotate cube as viewer wants
-    in  G.pictures . snd . unzip        -- render the final cube image
-        . reverse . sortOn fst          -- Rendering order of squares by depth
-        . map (renderSquare toScreen)   -- Render squares with depth cues
-        . M.cubeToSquares movement $ c  -- Position the cube in 3D-space and
-                                        -- convert to renderable Squares
+renderCube g = let scrDist = T.toScreen g
+               in  G.pictures . snd . unzip     -- Render the final cube image
+                   . reverse . sortOn fst       -- Rendering order of squares
+                   . map (renderSquare scrDist) -- is based on the depth cues.
+                   . M.cubeToSquares (M.positionCube g)
+                   $ T.cube g
 
 ---------------------------------------------------------------------
 -- Rendering squares

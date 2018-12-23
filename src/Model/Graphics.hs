@@ -6,6 +6,7 @@ module Model.Graphics
     , baseFace
       -- 3D-Transformations
     , moveSquare
+    , positionCube
     , positionFace
     , project
       -- 3D-Queries
@@ -28,6 +29,7 @@ import Model.Types                   ( Axis      (..)
                                      , Color     (..)
                                      , Cube      (..)
                                      , Face      (..)
+                                     , Game      (..)
                                      , Layer     (..)
                                      , Locus     (..)
                                      , Matrix    (..)
@@ -89,7 +91,13 @@ baseSquare a p (i,j) c = Square ( Locus a p (i,j) ) c Hidden coordinates
 ---------------------------------------------------------------------
 -- Transforms of 3D-representations
 
-positionFace :: Axis -> Pole -> Path3D -> Path3D
+positionCube :: Game -> Transform
+-- ^Given the current game state, figure out how to position the cube
+-- in three dimensions making sure it is always behind the screen.
+positionCube g = M.translatePath cubeCenter . M.rotatePath (rotation g)
+    where cubeCenter = (0,0,100)  -- Vector from screen to cube center
+
+positionFace :: Axis -> Pole -> Transform
 -- ^Position each face of the cube in the unrotated state according
 -- to its axis and pole. Each face is generated as lying in the (x,y)
 -- plane facing the negative pole of the z-axis. It needs to be

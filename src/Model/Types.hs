@@ -32,6 +32,7 @@ data Game = Game {
       cube     :: Cube   -- Rubiks cube model state
     , rotation :: Matrix -- User-rotation of the cube
     , mode     :: Mode   -- What the user is doing
+    , toScreen :: Float  -- Distance from user to the screen
     }
 
 -- |Current game state.
