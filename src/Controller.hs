@@ -10,9 +10,9 @@ import qualified Types                                as T
 routeEvent :: G.Event -> T.Game -> T.Game
 routeEvent _ = id
 
-updateTime :: Float -> M.Game -> M.Game
-updateTime dt g = g { M.theta = th }
-    where th = M.theta g + dt * 2 * pi / 5
+updateTime :: Float -> T.Game -> T.Game
+updateTime dt g = g { T.theta = th }
+    where th = T.theta g + dt * 2 * pi / 5
 
 -- routeEvent :: G.Event -> M.Game -> M.Game
 -- routeEvent (G.EventKey (G.SpecialKey  G.KeyDown   ) G.Down _ _     ) g

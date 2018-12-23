@@ -5,6 +5,11 @@ module Model
       -- Rotating each layer of the cube
     , rotateLayer
       -- Total rotations for visualization
+    , dot
+    , cross
+    , diffVV
+    , sumVV
+    , magVV
     , prodMM
     , prodMV
     , translatePath
@@ -57,7 +62,7 @@ cubeFace YAxis Pos = (map . map) (cellFace ZAxis Neg)
 cubeFace YAxis Neg = (map . map) (cellFace ZAxis Neg)
                      . head . rotateCube XAxis Pos90
 -- z-positive: pos pole of z-axis, pos x right, pos y up
-cubeFace ZAxis Pos = (map . map) (cellFace ZAxis Pos)
+cubeFace ZAxis Pos = (map . map) (cellFace ZAxis Neg)
                      . head . ( \ f -> f . f ) (rotateCube XAxis Pos90)
 -- z-negative: neg pole of z-axis, pos x right, pos y down
 cubeFace ZAxis Neg = (map . map) (cellFace ZAxis Neg) . head
@@ -140,6 +145,26 @@ rotateCube ZAxis Neg90 = (map . map . map) (rotateCell ZAxis Neg90)
 
 -- Exported
 
+dot :: Vec3 -> Vec3 -> Float
+-- ^Vector-Vector dot product.
+dot (x1,y1,z1) (x2,y2,z2) = x1 * x2 + y1 * y2 + z1 * z2
+
+cross :: Vec3 -> Vec3 -> Vec3
+-- ^Compute the cross product of two vectors.
+cross (x1,y1,z1) (x2,y2,z2) = ( y1 * z2 - z1 * y2
+                              , z1 * x2 - x1 * z2
+                              , x1 * y2 - y1 * x2
+                              )
+
+diffVV :: Vec3 -> Vec3 -> Vec3
+diffVV (x1,y1,z1) (x2,y2,z2) = (x1 - x2, y1 - y2, z1 - z2)
+
+sumVV :: Vec3 -> Vec3 -> Vec3
+sumVV (x1,y1,z1) (x2,y2,z2) = (x1+x2, y1+y2, z1+z2)
+
+magVV :: Vec3 -> Float
+magVV v = dot v v
+
 prodMM :: Matrix -> Matrix -> Matrix
 -- ^Matrix-Matrix product.
 prodMM (r1,r2,r3) m = let (r1',r2',r3') = tr m
@@ -158,11 +183,8 @@ tr :: Matrix -> Matrix
 -- ^Matrix transpose
 tr ( (x1, y1, z1), (x2, y2, z2), (x3, y3, z3) ) = ( (x1, x2, x3)
                                                   , (y1, y2, y3)
-                                                  , (z1, z2, z3) )
-
-dot :: Vec3 -> Vec3 -> Float
--- ^Vector-Vector dot product.
-dot (x1,y1,z1) (x2,y2,z2) = x1 * x2 + y1 * y2 + z1 * z2
+                                                  , (z1, z2, z3)
+                                                  )
 
 ---------------------------------------------------------------------
 -- Translating and rotating paths

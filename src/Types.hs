@@ -123,8 +123,7 @@ data Pole = Pos | Neg deriving ( Eq, Show )
 data Square = Square { front  :: Color  -- Color when facing front
                      , back   :: Color  -- Color when facing back
                      , points :: Path3D -- Points for rendering
-                     , normal :: Vec3   -- Surface normal used to
-                     }                  -- find facing direction
+                     }
 
 -- |Polymorphic triple used to build 3D-vectors and 3x3-matrices.
 type Triple a = (a, a, a)
