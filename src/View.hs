@@ -45,18 +45,21 @@ renderCube m c =
 
 renderSquare :: Float -> T.Square -> (Float, G.Picture)
 -- ^Provided a screen distance, convert a renderable square to a
--- Gloss polygon together with a depth cue.
-renderSquare d s = ( depth, pic )
-    where pic   = colorSquare d s . G.polygon $ ps
-          ps    = [ (x, y) | (x,y,_) <- T.points . M.project d $ s ]
-          depth = minimum [ z | (_,_,z) <- T.points s ]
+-- Gloss polygon together with a depth cue. Antialiasing is mimiced
+-- by applying a semi-transparent border.
+renderSquare d s = ( depth, fill <> border )
+    where clr    = squareColor d s
+          fill   = G.color clr . G.polygon $ ps
+          border = G.color (G.withAlpha 0.5 clr) . G.lineLoop $ ps
+          ps     = [ (x, y) | (x,y,_) <- T.points . M.project d $ s ]
+          depth  = minimum [ z | (_,_,z) <- T.points s ]
 
-colorSquare :: Float -> T.Square -> G.Picture -> G.Picture
--- Color the square depending on whether it is facing towards or away
--- from the viewer.
-colorSquare d s
-    | M.isFacingViewer d s = G.color (renderColor . T.front $ s)
-    | otherwise            = G.color (renderColor . T.back  $ s)
+squareColor :: Float -> T.Square -> G.Color -- G.Picture -> G.Picture
+-- Determine the Gloss color of the square depending on whether it is
+-- facing towards or away from the viewer.
+squareColor d s
+    | M.isFacingViewer d s = renderColor . T.front $ s
+    | otherwise            = renderColor . T.back  $ s
 
 ---------------------------------------------------------------------
 -- Gloss-Model interface functions
