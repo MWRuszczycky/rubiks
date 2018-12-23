@@ -12,6 +12,7 @@ module Model.Types
  , Layer     (..)
    -- Modeling axes and layer rotations
  , Axis      (..)
+ , Locus     (..)
  , Pole      (..)
  , Rotation  (..)
    -- Modeling a viewable Rubiks cube
@@ -113,6 +114,12 @@ data Rotation = Pos90 | Neg90 deriving ( Eq, Show )
 -- |Poles of an axis.
 data Pole = Pos | Neg deriving ( Eq, Show )
 
+-- |Position of a cell on the cube.
+data Locus = Locus { axis  :: Axis          -- Axis orthogonal to cube face
+                   , pole  :: Pole          -- Pole which side of the cube
+                   , coord :: (Int, Int)    -- Where in the layer
+                   } deriving ( Eq, Show )
+
 -- =============================================================== --
 -- Types for modeling the view of the Rubiks cube
 
@@ -125,7 +132,8 @@ data Pole = Pos | Neg deriving ( Eq, Show )
 
 -- |Cell face with rendering information. When rendering, cell faces
 -- are first converted to Squares.
-data Square = Square { front  :: Color  -- Color when facing front
+data Square = Square { locus  :: Locus  -- How to find the corresponding cell
+                     , front  :: Color  -- Color when facing front
                      , back   :: Color  -- Color when facing back
                      , points :: Path3D -- Points for rendering
                      }
