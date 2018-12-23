@@ -3,23 +3,24 @@
 
 module Model.Types
  ( -- Modeling game state
-   Game     (..)
+   Game      (..)
    -- Modeling the Rubiks cube and layer rotations
- , Cell     (..)
- , Color    (..)
- , Cube     (..)
- , Face     (..)
- , Layer    (..)
+ , Cell      (..)
+ , Color     (..)
+ , Cube      (..)
+ , Face      (..)
+ , Layer     (..)
    -- Modeling axes and layer rotations
- , Axis     (..)
- , Pole     (..)
- , Rotation (..)
+ , Axis      (..)
+ , Pole      (..)
+ , Rotation  (..)
    -- Modeling a viewable Rubiks cube
- , Matrix   (..)
- , Path3D   (..)
- , Square   (..)
- , Triple   (..)
- , Vec3     (..)
+ , Matrix    (..)
+ , Path3D    (..)
+ , Square    (..)
+ , Transform (..)
+ , Triple    (..)
+ , Vec3      (..)
  ) where
 
 -- =============================================================== --
@@ -145,6 +146,9 @@ instance Num Vec3 where
 
 -- |Path in 3-space.
 type Path3D = [Vec3]
+
+-- |Transformations of paths
+type Transform = Path3D -> Path3D
 
 -- |3x3-Matrix for rotations.
 type Matrix = Triple ( Triple Float )

@@ -23,37 +23,38 @@ module Model.Graphics
 
 import qualified Model.Geometry as M
 import qualified Model.Cube     as M
-import Data.List                     ( foldl'        )
-import Model.Types                   ( Axis     (..)
-                                     , Cell     (..)
-                                     , Color    (..)
-                                     , Cube     (..)
-                                     , Face     (..)
-                                     , Layer    (..)
-                                     , Matrix   (..)
-                                     , Pole     (..)
-                                     , Rotation (..)
-                                     , Square   (..)
-                                     , Vec3     (..)
-                                     , Path3D   (..) )
+import Data.List                     ( foldl'         )
+import Model.Types                   ( Axis      (..)
+                                     , Cell      (..)
+                                     , Color     (..)
+                                     , Cube      (..)
+                                     , Face      (..)
+                                     , Layer     (..)
+                                     , Matrix    (..)
+                                     , Pole      (..)
+                                     , Rotation  (..)
+                                     , Square    (..)
+                                     , Transform (..)
+                                     , Vec3      (..)
+                                     , Path3D    (..) )
 
 ---------------------------------------------------------------------
 -- Rendering each face of the cube and the cube itself as Squares
 
-cubeToSquares :: (Path3D -> Path3D) -> Cube -> [Square]
+cubeToSquares :: Transform -> Cube -> [Square]
 -- ^Given a positioning and orienting function for the cube, convert
 -- the cube from the model representation to a completed
 -- 3D-representation using Squares ready for either interrogation by
 -- the Controller or rendering by the View. The origin is at the
 -- center of the screen and does not account for viewer position.
-cubeToSquares movement c = let go = map (moveSquare movement)
-                           in  concatMap go [ faceToSquares XAxis Pos c
-                                            , faceToSquares XAxis Neg c
-                                            , faceToSquares YAxis Pos c
-                                            , faceToSquares YAxis Neg c
-                                            , faceToSquares ZAxis Pos c
-                                            , faceToSquares ZAxis Neg c
-                                            ]
+cubeToSquares t c = let go = map (moveSquare t)
+                    in  concatMap go [ faceToSquares XAxis Pos c
+                                     , faceToSquares XAxis Neg c
+                                     , faceToSquares YAxis Pos c
+                                     , faceToSquares YAxis Neg c
+                                     , faceToSquares ZAxis Pos c
+                                     , faceToSquares ZAxis Neg c
+                                     ]
 
 faceToSquares :: Axis -> Pole -> Cube -> [Square]
 -- ^Extract each face from the cube and position accordingly in the
@@ -113,7 +114,7 @@ positionFace ZAxis Pos = M.translatePath (0,  0, 66)
                          . M.rotatePath ( M.rotXMat (pi)    )
 positionFace ZAxis Neg = M.translatePath (0,  0,-66)
 
-moveSquare :: (Path3D -> Path3D) -> Square -> Square
+moveSquare :: Transform -> Square -> Square
 -- ^Helper function for positioning a Square according to some
 -- transformation function.
 moveSquare go s = s { points = go $ points s}
