@@ -4,6 +4,7 @@ module Model.Graphics
     , baseFace
     , moveSquare
     , baseSquare
+    , isFacingViewer
     ) where
 
 -- =============================================================== --
@@ -13,6 +14,7 @@ module Model.Graphics
 
 import qualified Model.Geometry as M
 import qualified Model.Cube     as M
+import Data.List                     ( foldl'        )
 import Model.Types                   ( Axis     (..)
                                      , Cell     (..)
                                      , Color    (..)
@@ -31,10 +33,38 @@ import Model.Types                   ( Axis     (..)
 
 faceToSquares :: Axis -> Pole -> Cube -> [Square]
 -- ^Extract each face from the cube and position accordingly in the
--- initial unrotated state.
+-- initial unrotated state of the model representation.
 faceToSquares a p = map (moveSquare (positionFace a p) )
                     . baseFace
                     . M.cubeFace a p
+
+---------------------------------------------------------------------
+-- Base 3D-representations of cube and cell faces (as Squares) prior
+-- to any geometry transforms.
+
+baseFace :: Face -> [Square]
+-- ^Convert a cube face into a list of squares with rendering
+-- information. The face is created in the standard position and thus
+-- faces the negative pole of the z-axis and lies in the (x,y)-plane.
+-- The squares in each face are separated by 4 pixel spacers. Since
+-- each square is 40 x 40 pixels, the face is 128 x 128 pixels.
+baseFace cs = map posSq sqs
+    where go x          = fromIntegral $ 44 * ( x - 1 )
+          posSq (s,i,j) = moveSquare ( M.translatePath (go j, go i, 0) ) s
+          sqs           = [ (baseSquare (cs !! i !! j) Hidden, i, j)
+                            | i <- [0..2] , j <- [0..2] ]
+
+baseSquare :: Color -> Color -> Square
+-- ^Initial standard form the square given its exposed-facing-front
+-- color, and its hidden-back color. Squares are 40 x 40 pixels.
+baseSquare f b = Square f b [ ( -20, -20, 0 )
+                            , (  20, -20, 0 )
+                            , (  20,  20, 0 )
+                            , ( -20,  20, 0 )
+                            ]
+
+---------------------------------------------------------------------
+-- Transforms of 3D-representations
 
 positionFace :: Axis -> Pole -> Path3D -> Path3D
 -- ^Position each face of the cube in the unrotated state according
@@ -59,28 +89,26 @@ positionFace ZAxis Pos = M.translatePath (0,  0, 66)
                          . M.rotatePath ( M.rotXMat (pi)    )
 positionFace ZAxis Neg = M.translatePath (0,  0,-66)
 
-baseFace :: Face -> [Square]
--- ^Convert a cube face into a list of squares with renedring
--- information. The face is created in the standard position and thus
--- faces the negative pole of the z-axis and lies in the (x,y)-plane.
--- The squares in each face are separated by 4 pixel spacers. Since
--- each square is 40 x 40 pixels, the face is 128 x 128 pixels.
-baseFace cs = map posSq sqs
-    where go x          = fromIntegral $ 44 * ( x - 1 )
-          posSq (s,i,j) = moveSquare ( M.translatePath (go j, go i, 0) ) s
-          sqs           = [ (baseSquare (cs !! i !! j) Hidden, i, j)
-                            | i <- [0..2] , j <- [0..2] ]
-
 moveSquare :: (Path3D -> Path3D) -> Square -> Square
 -- ^Helper function for positioning a Square according to some
 -- transformation function.
 moveSquare go s = s { points = go $ points s}
 
-baseSquare :: Color -> Color -> Square
--- ^Initial standard form the square given its exposed-facing-front
--- color, and its hidden-back color. Squares are 40 x 40 pixels.
-baseSquare f b = Square f b [ ( -20, -20, 0 )
-                            , (  20, -20, 0 )
-                            , (  20,  20, 0 )
-                            , ( -20,  20, 0 )
-                            ]
+---------------------------------------------------------------------
+-- 3D-Functions
+
+isFacingViewer :: Float -> Square -> Bool
+-- ^Given a screen distance determine whether a square is facing the
+-- viewer or facing away from the viewer. This is determined by
+-- finding the normal vector of the square face that points in the
+-- exposed direction, as well as the vector from the viewer to the
+-- center of the square. If the dot-product of these two vectors is
+-- negative, then the exposed face is facing the viewer, otherwise
+-- the viewer is seeing the back of the square. Remember that
+-- positive-y points down, positive-x points right, positive-z
+-- points into the screen and the origin as at the screen with the
+-- viewer a negative z-distance d back from it.
+isFacingViewer d (Square _ _ ps) = M.dot n e < 0
+    where (t:u:v:w:_) = map (+ (0,0,d)) ps
+          n           = M.cross (w - t) (u - t)
+          e           = foldl' (+) (0,0,0) [t, u, v, w]

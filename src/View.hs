@@ -10,8 +10,7 @@ import qualified Graphics.Gloss as G
 import qualified Model.Types    as T
 import qualified Model.Graphics as M
 import qualified Model.Geometry as M
-import Data.List                     ( sortOn
-                                     , foldl' )
+import Data.List                     ( sortOn   )
 
 -- =============================================================== --
 -- Rendering functions
@@ -56,20 +55,11 @@ renderSquare d s = ( depth, pic )
           depth = minimum [ z | (_,_,z) <- T.points s ]
 
 colorSquare :: Float -> T.Square -> G.Picture -> G.Picture
--- ^Determine the color of the square depending on whether it is
--- facing the viewer or facing away from the viewer. This is
--- determined by finding the normal vector of the square face, which
--- points in the exposed direction, as well as d the vector from the
--- viewer to the center of the square. If the dot-product of these
--- two vectors is negative, then the exposed face is facing the
--- viewer, otherwise the viewer is seeing the back of the square.
--- Remember that positive-y points down and positive-x points right.
-colorSquare d (T.Square f b ps)
-    | M.dot n e < 0 = G.color (renderColor f)
-    | otherwise     = G.color (renderColor b)
-    where (t:u:v:w:_) = map (+ (0,0,d)) ps
-          n           = M.cross (w - t) (u - t)
-          e           = foldl' (+) (0,0,0) [t, u, v, w]
+-- Color the square depending on whether it is facing towards or away
+-- from the viewer.
+colorSquare d s
+    | M.isFacingViewer d s = G.color (renderColor . T.front $ s)
+    | otherwise            = G.color (renderColor . T.back  $ s)
 
 ---------------------------------------------------------------------
 -- Gloss-Model interface functions

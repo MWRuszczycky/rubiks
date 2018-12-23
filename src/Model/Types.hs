@@ -122,7 +122,8 @@ data Pole = Pos | Neg deriving ( Eq, Show )
 -- simultaneously) are handled separately as the these do not change
 -- the organization of the cube and only its visualization.
 
--- |Cell face with rendering information.
+-- |Cell face with rendering information. When rendering, cell faces
+-- are first converted to Squares.
 data Square = Square { front  :: Color  -- Color when facing front
                      , back   :: Color  -- Color when facing back
                      , points :: Path3D -- Points for rendering
