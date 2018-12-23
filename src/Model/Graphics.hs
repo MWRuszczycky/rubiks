@@ -1,20 +1,24 @@
 module Model.Graphics
-    ( cubeToSquares
+    ( -- Rendering to 3D-squares
+      cubeToSquares
     , faceToSquares
-    , positionFace
+      -- Base 3D-representations
     , baseFace
-    , moveSquare
     , baseSquare
-    , isFacingViewer
+      -- 3D-Transformations
+    , moveSquare
+    , positionFace
     , project
+      -- 3D-Queries
+    , isFacingViewer
     ) where
 
 -- =============================================================== --
 -- Functions for converting the internal model of the Rubiks cube
--- into a 3D-representation and 2D-projection.
+-- into a 3D-representation using the Square type.
 --
--- This is done to always ensure that the cube is fully in front of
--- the screen and the viewer is fully behind the screen.
+-- The cube should always be fully in front of the screen and the
+-- viewer should always be fully behind the screen.
 -- =============================================================== --
 
 import qualified Model.Geometry as M
@@ -114,8 +118,16 @@ moveSquare :: (Path3D -> Path3D) -> Square -> Square
 -- transformation function.
 moveSquare go s = s { points = go $ points s}
 
+project :: Float -> Square -> Square
+-- ^Project a Square in 3D-space onto the screen, which is at z = 0.
+-- Squares are assumed to be fully behind the screen.
+project d s = s { points = map go . points $ s}
+    where go (x,y,z) | z > 0     = ( u * x, u * y, 0 )
+                     | otherwise = ( x, y, 0 )
+                     where u = d / ( d + z )
+
 ---------------------------------------------------------------------
--- 3D-Functions
+-- 3D-Queries
 
 isFacingViewer :: Float -> Square -> Bool
 -- ^Given a screen distance determine whether a square is facing the
@@ -132,11 +144,3 @@ isFacingViewer d (Square _ _ ps) = M.dot n e < 0
     where (t:u:v:w:_) = map (+ (0,0,d)) ps
           n           = M.cross (w - t) (u - t)
           e           = foldl' (+) (0,0,0) [t, u, v, w]
-
-project :: Float -> Square -> Square
--- ^Project a Square in 3D-space onto the screen, which is at z = 0.
--- Squares are assumed to be fully behind the screen.
-project d s = s { points = map go . points $ s}
-    where go (x,y,z) | z > 0     = ( u * x, u * y, 0 )
-                     | otherwise = ( x, y, 0 )
-                     where u = d / ( d + z )
