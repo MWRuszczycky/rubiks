@@ -73,24 +73,18 @@ baseFace :: Axis -> Pole -> Face -> [Square]
 -- faces the negative pole of the z-axis and lies in the (x,y)-plane.
 -- The squares in each face are separated by 4 pixel spacers. Since
 -- each square is 40 x 40 pixels, the face is 128 x 128 pixels.
-baseFace a p cs = map posSq sqs
-    where go x          = fromIntegral $ 44 * ( x - 1 )
-          posSq (s,i,j) = moveSquare ( M.translatePath (go j, go i, 0) ) s
-          sqs           = [ ( Square ( Locus a p (i,j) )
-                                     ( cs !! i !! j    )
-                                     ( Hidden          )
-                                     ( squarePoints    ) , i, j )
-                            | i <- [0..2]
-                            , j <- [0..2]
-                          ]
+baseFace a p cs = [ baseSquare a p (i,j) (cs !! i !! j) | i <- [0..2]
+                                                        , j <- [0..2] ]
 
-squarePoints :: Path3D
--- ^Starting points for a square flat on the screen.
-squarePoints = [ ( -20, -20, 0 )
-               , (  20, -20, 0 )
-               , (  20,  20, 0 )
-               , ( -20,  20, 0 )
-               ]
+baseSquare :: Axis -> Pole -> (Int, Int) -> Color -> Square
+-- ^Square flat on the screen moved to its position in the cube face.
+baseSquare a p (i,j) c = Square ( Locus a p (i,j) ) c Hidden coordinates
+    where go x        = fromIntegral $ 44 * ( x - 1 )
+          coordinates = M.translatePath (go j, go i, 0) [ ( -20, -20, 0 )
+                                                        , (  20, -20, 0 )
+                                                        , (  20,  20, 0 )
+                                                        , ( -20,  20, 0 )
+                                                        ]
 
 ---------------------------------------------------------------------
 -- Transforms of 3D-representations
