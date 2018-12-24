@@ -15,7 +15,7 @@ module Model.Geometry
     ) where
 
 -- =============================================================== --
--- General 3D-matrix and vector operations
+-- General 3D-matrix and vector operations for a left-handed frame
 -- =============================================================== --
 
 import Model.Types  ( Axis     (..)
@@ -92,25 +92,25 @@ translatePath (dx,dy,dz) = map go
     where go (x,y,z) = (x + dx, y + dy, z + dz)
 
 ---------------------------------------------------------------------
--- Rotation matrices
+-- Rotation matrices for a left-handed coordinate frame
 
 rotXMat :: Float -> Matrix
 -- ^Rotatation about the positive x axis by t ratians.
-rotXMat t = ( ( 1,     0,      0 )
-            , ( 0, cos t, -sin t )
-            , ( 0, sin t,  cos t )
+rotXMat t = ( ( 1,      0,     0 )
+            , ( 0,  cos t, sin t )
+            , ( 0, -sin t, cos t )
             )
 
 rotYMat :: Float -> Matrix
 -- ^Rotation about the positive y axis by t radians.
-rotYMat t = ( (  cos t, 0, sin t )
-            , (      0, 1,     0 )
-            , ( -sin t, 0, cos t )
+rotYMat t = ( (  cos t, 0, -sin t )
+            , (      0, 1,      0 )
+            , (  sin t, 0,  cos t )
             )
 
 rotZMat :: Float -> Matrix
 -- ^Rotation about the positive z axis by t radians.
-rotZMat t = ( ( cos t, -sin t, 0 )
-            , ( sin t,  cos t, 0 )
-            , (     0,      0, 1 )
+rotZMat t = ( (  cos t, sin t, 0 )
+            , ( -sin t, cos t, 0 )
+            , (      0,     0, 1 )
             )

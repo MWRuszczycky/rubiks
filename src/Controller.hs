@@ -40,8 +40,8 @@ getLocus xy g = T.locus <$> find ( M.isOnSquare (T.toScreen g) xy ) sqs
 
 rotateCube :: (Float, Float) -> (Float, Float) -> T.Game -> T.Game
 rotateCube (x,y) (x',y') g =
-    let dtx = (x - x') / 100
-        dty = (y' - y) / 100
+    let dtx = (x' - x) / 100
+        dty = (y - y') / 100
         r   = foldr M.prodMM (T.rotation g) [ M.rotXMat dty , M.rotYMat dtx ]
     in  g { T.mode  = T.RotationMove (x', y') , T.rotation = r }
 

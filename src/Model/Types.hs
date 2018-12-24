@@ -50,32 +50,24 @@ data Mode = -- Cube is being rotated with last mouse position.
 --
 ---------------------------------------------------------------------
 -- Basic model
+-- Left-handed coordinate system. Right-handed rotations about an
+-- axis are called positive-rotations.
+-- Each face of the cube is at the negative pole of the given axis.
+-- Indexing of cells on the face follows:
+-- (0,0) .. (0,n)
+--   .        .
+-- (n,0) .. (n,n)
+-- overlaying the following standard face-orientations:
 --
--- The screen is modeled with a right-handed coordinate frame where
--- the positive-y axis points down, the positive x-axis points right
--- and the positive-z axis points into the screen. The Rubiks cube
--- is modeled as a stack of matrices of cells called a layer along
--- the z-axis. Each cell in a layer is defined by six faces, which in
--- turn have color values. Layers in other planes (e.g., (z,y)) are
--- accessed by first rotating the cube so that the (z,y)-plane now
--- occupies the previous (x,y)-plane (see below). See documentation
--- at the Model.Cube.cubeFace function for details about the
--- orientation of each face. Total rotations of the Rubiks cube are
--- handled using a separate rotation matrix.
+-- +y        +z        +x        +x        +y        +z
+-- ^  -z     ^  -x     ^  -y     ^  +z     ^  +x     ^  +y
+-- |         |         |         |         |         |
+-- ---> +x , ---> +y , ---> +z , ---> +y , ---> +z , ---> +x
 --
---    -y        positive-z into screen
---     |
--- -x --------------------------------> +x
---     |
---     |  Layer-0 on top in the (x,y)-plane at negative pole of z
---     |  Layer-n at bottom in the (x,y)-plane at positive pole of z
---     |  [ [ (0,0) (0,1) (0,2) ]
---     |    [ (1,0) (1,1) (1,2) ]    <-- positive-x face
---     |    [ (2,0) (2,1) (2,2) ] ]
---     |
---     v      ^                       looking down on negative z-face
---    +y      | positive-y face
---
+-- The standard cube orientation is the first, facing the negative-z.
+-- pole. Other faces are accessed by rotating the cube and taking the
+--- top matrix element; however, the cube is assumed to always be in
+-- the first orientation. Visualization is handled separately.
 ---------------------------------------------------------------------
 -- Cells
 
@@ -93,16 +85,18 @@ data Color = Red
 -- x-positive x-negative y-positive y-negative z-positive z-negative
 data Cell = Cell Color Color Color Color Color Color deriving ( Eq, Show )
 
--- |A cube Face is the matrix of corresponding cell face colors.
+-- |A cube Face is a matrix of corresponding cell face colors
+-- oriented according to the model above.
 type Face = [[Color]]
 
--- |A Layer is all the cells in the (x,y)-plane for some depth of z.
--- To get layers along the x or y axes, you first rotate the cube to
--- place the positive x or y axis along the positive z-axis.
+-- |A Layer is all the cells in the horizontal plane at some depth
+-- along the positive orthogonal axis. A layer is accessed by
+-- rotating the cube to the standard orientation for the given
+-- negative face and then taking the layer at the specified depth.
 type Layer = [[Cell]]
 
--- |A cube is a stack of layers along the z-axis. The layer 0 is
--- at the negative pole of the z-axis.
+-- |A cube is a stack of layers along the z-axis, with layer 0 at
+-- the negative pole.
 type Cube = [Layer]
 
 ---------------------------------------------------------------------
@@ -110,16 +104,22 @@ type Cube = [Layer]
 --
 -- Right-handed rotations are positive (i.e., thumb in the positive
 -- direction of the axis of rotation) and left-handed rotations are
--- negative. Rotations of individual layers are modeled by rotating
--- the cube so that the positive axis points into the screen
--- replacing the positive z-axis, rotating the layer and then
--- rotating the cube back to its original configuration. Each cell is
--- also rotated accordingly. The responsible functions are defined in
--- the Model module.
+-- negative. Layers are rotatated based on an axis, 90-degree
+-- rotation and depth. The cube is first rotated to the standard
+-- orientation for the negative pole of the axis of rotation (see
+-- above), the layer is accessed by the depth, with the 0-th most
+-- negative, the rotation is applied and then the cube is returned to
+-- its standard orientation.
 
--- |Coordinate axis
+-- |A player's move with everything you need to rotate a layer
+type Move = ( Axis     -- Which axis
+            , Rotation -- Which way
+            , Int      -- Layer depth
+            )
+
+-- |Coordinate axis (left-handed, since Gloss has y-pointing up)
 data Axis = XAxis -- Positive axis points to the right
-          | YAxis -- Positive axis points down
+          | YAxis -- Positive axis points up
           | ZAxis -- Positive axis points into the screen
             deriving ( Eq, Show )
 
@@ -129,13 +129,8 @@ data Rotation = Pos90 | Neg90 deriving ( Eq, Show )
 -- |Poles of an axis.
 data Pole = Pos | Neg deriving ( Eq, Show )
 
--- |A player's move with everything you need to rotate a layer
-type Move = ( Axis     -- Which axis
-            , Rotation -- Which way
-            , Int      -- Layer depth
-            )
-
--- |Position of a cell on the cube.
+-- |Position of a cell on the cube. Coordinates are based on the
+-- standard orientations described above.
 data Locus = Locus { axis  :: Axis          -- Axis orthogonal to cube face
                    , pole  :: Pole          -- Which side of the cube
                    , coord :: (Int, Int)    -- Where in the layer
@@ -149,7 +144,7 @@ data Locus = Locus { axis  :: Axis          -- Axis orthogonal to cube face
 --
 -- Total rotations of the cube (i.e., rotation of all stacked layers
 -- simultaneously) are handled separately as the these do not change
--- the organization of the cube and only its visualization.
+-- the configuration of the cube and only its visualization.
 
 -- |Cell face with rendering information. When rendering, cell faces
 -- are first converted to Squares.

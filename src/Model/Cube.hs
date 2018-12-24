@@ -42,24 +42,27 @@ cellFace ZAxis Neg (Cell _ _ _ _ _ z) = z
 
 cubeFace :: Axis -> Pole -> Cube -> Face
 -- ^Retrieve the faces of all six cells at the specified pole of the
--- specified axis facing out from the center of the cube. Note that
--- the cube is displayed mirror-flipped along the y-axis.
--- x-positive: pos pole of x-axis, pos z right, pos y down
-cubeFace XAxis Pos = (map . map) (cellFace ZAxis Neg)
-                     . head . rotateCube YAxis Pos90
--- y-positive: pos pole of y-axis, pos x right, pos z down
-cubeFace YAxis Pos = (map . map) (cellFace ZAxis Neg)
-                     . head . rotateCube XAxis Neg90
--- z-positive: pos pole of z-axis, pos x right, pos y up
-cubeFace ZAxis Pos = (map . map) (cellFace ZAxis Neg)
-                     . head . ( \ f -> f . f ) (rotateCube XAxis Pos90)
--- x-negative: neg pole of x-axis, pos z left,  pos y down
-cubeFace XAxis Neg = (map . map) (cellFace ZAxis Neg)
-                     . head . rotateCube YAxis Neg90
--- y-negative: neg pole of y-axis, pos x right, pos z up
-cubeFace YAxis Neg = (map . map) (cellFace ZAxis Neg)
-                     . head . rotateCube XAxis Pos90
--- z-negative: neg pole of z-axis, pos x right, pos y down
+-- specified axis facing out from the center of the cube.
+-- x-positive: +y up , +z right
+cubeFace XAxis Pos = (map . map) (cellFace ZAxis Neg) . head
+                     . rotateCube YAxis Neg90
+-- y-positive: +z up , +x right
+cubeFace YAxis Pos = (map . map) (cellFace ZAxis Neg) . head
+                     . rotateCube XAxis Pos90
+-- z-positive: +x up , +y right
+cubeFace ZAxis Pos = (map . map) (cellFace ZAxis Neg) . head
+                     . rotateCube ZAxis Neg90
+                     . rotateCube XAxis Pos90
+                     . rotateCube XAxis Pos90
+-- x-negative: +z up , +y right
+cubeFace XAxis Neg = (map . map) (cellFace ZAxis Neg) . head
+                     . rotateCube ZAxis Pos90
+                     . rotateCube YAxis Pos90
+-- y-negative: +x up , +z right
+cubeFace YAxis Neg = (map . map) (cellFace ZAxis Neg) . head
+                     . rotateCube ZAxis Neg90
+                     . rotateCube XAxis Neg90
+-- z-negative: +y up, +x right
 cubeFace ZAxis Neg = (map . map) (cellFace ZAxis Neg) . head
 
 -- =============================================================== --
@@ -75,60 +78,33 @@ cubeFace ZAxis Neg = (map . map) (cellFace ZAxis Neg) . head
 -- Exported
 
 getMove :: Locus -> Locus -> Maybe Move
--- ^Given a movement between two loci, return the corresponding
--- LayerRotation. See documentation at Model.Cube.cubeFace for the
--- orientation of each face. Note that the cube is displayed mirror-
--- flipped along the y-axis, because Gloss has positive-y up.
-getMove ( Locus ZAxis Pos (i,j) ) ( Locus ZAxis Pos (i',j') )
-    | i' - i > 0 && j == j' = Just (XAxis, Pos90, j)
-    | i' - i < 0 && j == j' = Just (XAxis, Neg90, j)
-    | j' - j > 0 && i == i' = Just (YAxis, Pos90, 2 - i)
-    | j' - j < 0 && i == i' = Just (YAxis, Neg90, 2 - i)
+-- ^Given a movement between two loci, return the corresponding Move
+-- for changing the cube configuration.
+getMove ( Locus a p (r,c) ) ( Locus a' p' (r',c') )
+    | a /= a' || p /= p'    = Nothing
+    | r' - r > 0 && c == c' = Just (go a p, Pos90, c)
+    | r' - r < 0 && c == c' = Just (go a p, Neg90, c)
+    | c' - c > 0 && r == r' = Just (go a . repol $ p, Pos90, 2 - r)
+    | c' - c < 0 && r == r' = Just (go a . repol $ p, Neg90, 2 - r)
     | otherwise             = Nothing
-getMove ( Locus ZAxis Neg (i,j) ) ( Locus ZAxis Neg (i',j') )
-    | i' - i > 0 && j == j' = Just (XAxis, Pos90, j)
-    | i' - i < 0 && j == j' = Just (XAxis, Neg90, j)
-    | j' - j > 0 && i == i' = Just (YAxis, Neg90, i)
-    | j' - j < 0 && i == i' = Just (YAxis, Pos90, i)
-    | otherwise             = Nothing
-getMove ( Locus XAxis Pos (i,j) ) ( Locus XAxis Pos (i',j') )
-    | i' - i > 0 && j == j' = Just (ZAxis, Pos90, j)
-    | i' - i < 0 && j == j' = Just (ZAxis, Neg90, j)
-    | j' - j > 0 && i == i' = Just (YAxis, Neg90, i)
-    | j' - j < 0 && i == i' = Just (YAxis, Pos90, i)
-    | otherwise             = Nothing
-getMove ( Locus XAxis Neg (i,j) ) ( Locus XAxis Neg (i',j') )
-    | i' - i > 0 && j == j' = Just (ZAxis, Neg90, 2 - j)
-    | i' - i < 0 && j == j' = Just (ZAxis, Pos90, 2 - j)
-    | j' - j > 0 && i == i' = Just (YAxis, Neg90, i)
-    | j' - j < 0 && i == i' = Just (YAxis, Pos90, i)
-    | otherwise             = Nothing
-getMove ( Locus YAxis Pos (i,j) ) ( Locus YAxis Pos (i',j') )
-    | i' - i > 0 && j == j' = Just (XAxis, Pos90, j)
-    | i' - i < 0 && j == j' = Just (XAxis, Neg90, j)
-    | j' - j > 0 && i == i' = Just (ZAxis, Neg90, i)
-    | j' - j < 0 && i == i' = Just (ZAxis, Pos90, i)
-    | otherwise             = Nothing
-getMove ( Locus YAxis Neg (i,j) ) ( Locus YAxis Neg (i',j') )
-    | i' - i > 0 && j == j' = Just (XAxis, Pos90, j)
-    | i' - i < 0 && j == j' = Just (XAxis, Neg90, j)
-    | j' - j > 0 && i == i' = Just (ZAxis, Pos90, 2 - i)
-    | j' - j < 0 && i == i' = Just (ZAxis, Neg90, 2 - i)
-    | otherwise             = Nothing
-getMove _ _ = Nothing
+    where go XAxis Pos = ZAxis
+          go XAxis Neg = YAxis
+          go YAxis Pos = XAxis
+          go YAxis Neg = ZAxis
+          go ZAxis Pos = YAxis
+          go ZAxis Neg = XAxis
+          repol Pos    = Neg
+          repol Neg    = Pos
 
 rotateLayer :: Move -> Cube -> Cube
--- ^Rotate the n-th layer along the given axis 90-degrees in the
--- specified direction. Positive rotations are right handed along the
--- positive direction of the axis. This works by first rotating the
--- whole cube so that the axis of rotation is placed along the z-axis,
--- rotating and then going back.
-rotateLayer (XAxis,t,n) = rotateCube YAxis Pos90
+-- ^Rotate cube so that the axis of rotation points in the positive-z
+-- direction and rotate the layer at the specified depth.
+rotateLayer (XAxis,t,n) = rotateCube YAxis Neg90
                           . rotateZLayer n t
-                          . rotateCube YAxis Neg90
-rotateLayer (YAxis,t,n) = rotateCube XAxis Neg90
+                          . rotateCube YAxis Pos90
+rotateLayer (YAxis,t,n) = rotateCube XAxis Pos90
                           . rotateZLayer n t
-                          . rotateCube XAxis Pos90
+                          . rotateCube XAxis Neg90
 rotateLayer (ZAxis,t,n) = rotateZLayer n t
 
 -- Unexported
@@ -148,18 +124,18 @@ rotateZLayer n t c = [ if k == n then go t x else x | (x,k) <- zip c [0..] ]
 -- Unexported
 
 rotateCell :: Axis -> Rotation -> Cell -> Cell
-rotateCell XAxis Pos90 (Cell xp xn yp yn zp zn) = Cell xp xn zn zp yp yn
-rotateCell XAxis Neg90 (Cell xp xn yp yn zp zn) = Cell xp xn zp zn yn yp
-rotateCell YAxis Pos90 (Cell xp xn yp yn zp zn) = Cell zp zn yp yn xn xp
-rotateCell YAxis Neg90 (Cell xp xn yp yn zp zn) = Cell zn zp yp yn xp xn
-rotateCell ZAxis Pos90 (Cell xp xn yp yn zp zn) = Cell yn yp xp xn zp zn
-rotateCell ZAxis Neg90 (Cell xp xn yp yn zp zn) = Cell yp yn xn xp zp zn
+rotateCell XAxis Pos90 (Cell xp xn yp yn zp zn) = Cell xp xn zp zn yn yp
+rotateCell XAxis Neg90 (Cell xp xn yp yn zp zn) = Cell xp xn zn zp yp yn
+rotateCell YAxis Pos90 (Cell xp xn yp yn zp zn) = Cell zn zp yp yn xp xn
+rotateCell YAxis Neg90 (Cell xp xn yp yn zp zn) = Cell zp zn yp yn xn xp
+rotateCell ZAxis Pos90 (Cell xp xn yp yn zp zn) = Cell yp yn xn xp zp zn
+rotateCell ZAxis Neg90 (Cell xp xn yp yn zp zn) = Cell yn yp xp xn zp zn
 
 ---------------------------------------------------------------------
 -- 90-degree Cube rotation helper function
 -- These are helper functions used for rotating layers and not for
 -- viewing total rotations of the Rubiks cube, which are handled
--- separately by the View using a rotation matrix.
+-- separately by the View.
 
 -- Unexported
 
@@ -169,11 +145,11 @@ rotateCube XAxis Pos90 = (map . map . map) (rotateCell XAxis Pos90)
 rotateCube XAxis Neg90 = (map . map . map) (rotateCell XAxis Neg90)
                          . transpose . map reverse
 rotateCube YAxis Pos90 = (map . map . map) (rotateCell YAxis Pos90)
-                         . map transpose . transpose
-                         . map reverse . map transpose
-rotateCube YAxis Neg90 = (map . map . map) (rotateCell YAxis Neg90)
                          . map transpose . map reverse
                          . transpose . map transpose
+rotateCube YAxis Neg90 = (map . map . map) (rotateCell YAxis Neg90)
+                         . map transpose . transpose
+                         . map reverse . map transpose
 rotateCube ZAxis Pos90 = (map . map . map) (rotateCell ZAxis Pos90)
                          . map ( map reverse . transpose )
 rotateCube ZAxis Neg90 = (map . map . map) (rotateCell ZAxis Neg90)

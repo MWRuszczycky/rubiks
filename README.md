@@ -32,10 +32,9 @@ To uninstall, delete the repository and the binary installed by stack if you did
 
 ## Known issues and to-do
 
-1. The cube is rendered mirror-flipped upside-down. It works fine, but this bugs me.
-2. Make it easier to quit rather than having to use `Esc`.
-3. Implement undos.
-4. Implement randomized starts rather than beginning with a solved cube.
-5. Implement saving of progress.
-6. Maybe allow user to choose their own colors.
-7. Write a better README.
+1. Make it easier to quit rather than having to use `Esc`.
+2. Implement undos.
+3. Implement randomized starts rather than beginning with a solved cube.
+4. Implement saving of progress.
+5. Maybe allow user to choose their own colors.
+6. Write a better README.
