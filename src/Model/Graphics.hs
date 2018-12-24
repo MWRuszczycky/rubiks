@@ -76,11 +76,13 @@ baseFace :: Axis -> Pole -> Face -> [Square]
 -- faces the negative pole of the z-axis and lies in the (x,y)-plane.
 -- The squares in each face are separated by 4 pixel spacers. Since
 -- each square is 40 x 40 pixels, the face is 128 x 128 pixels.
+-- Note that the face is mirror-flipped along the y-axis.
 baseFace a p cs = [ baseSquare a p (i,j) (cs !! i !! j) | i <- [0..2]
                                                         , j <- [0..2] ]
 
 baseSquare :: Axis -> Pole -> (Int, Int) -> Color -> Square
 -- ^Square flat on the screen moved to its position in the cube face.
+-- Note that the square is positioned mirror-flipped along y-axis.
 baseSquare a p (i,j) c = Square ( Locus a p (i,j) ) c Hidden coordinates
     where go x        = fromIntegral $ 44 * ( x - 1 )
           coordinates = M.translatePath (go j, go i, 0) [ ( -20, -20, 0 )
@@ -105,10 +107,12 @@ positionFace :: Axis -> Pole -> Transform
 -- rotated to the correct pole and then translated to the correct
 -- position on the cube. For example, the positve-x face needs to be
 -- rotated minus 90-degrees along the y-axis, which points down, and
--- then pushed right half the width of the cube (64 pixels). An extra
--- 2 pixels are added to each face position to prevent orthogonal
--- edges from touching. This looks nicer and also provides better
--- depth cues when rendering the faces in order of depth.
+-- then pushed right half the width of the cube (64 pixels).
+-- An extra 2 pixels are added to each face position to prevent
+-- orthogonal edges from touching. This looks nicer and also provides
+-- better depth cues when rendering the faces in order of depth. Note
+-- that the y-axis is inverted so that the cube is mirror-flipped
+-- upside, because Gloss has positive-y up rather than down.
 positionFace XAxis Pos = M.translatePath (66, 0,  0)
                          . M.rotatePath ( M.rotYMat (-pi/2) )
 positionFace XAxis Neg = M.translatePath (-66, 0, 0)

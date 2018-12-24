@@ -3,26 +3,27 @@
 
 module Model.Types
  ( -- Modeling game state
-   Game      (..)
- , Mode      (..)
+   Game         (..)
+ , Mode         (..)
    -- Modeling the Rubiks cube and layer rotations
- , Cell      (..)
- , Color     (..)
- , Cube      (..)
- , Face      (..)
- , Layer     (..)
+ , Cell         (..)
+ , Color        (..)
+ , Cube         (..)
+ , Face         (..)
+ , Layer        (..)
    -- Modeling axes and layer rotations
- , Axis      (..)
- , Locus     (..)
- , Pole      (..)
- , Rotation  (..)
+ , Axis         (..)
+ , Locus        (..)
+ , Pole         (..)
+ , Rotation     (..)
+ , Move         (..)
    -- Modeling a viewable Rubiks cube
- , Matrix    (..)
- , Path3D    (..)
- , Square    (..)
- , Transform (..)
- , Triple    (..)
- , Vec3      (..)
+ , Matrix       (..)
+ , Path3D       (..)
+ , Square       (..)
+ , Transform    (..)
+ , Triple       (..)
+ , Vec3         (..)
  ) where
 
 -- =============================================================== --
@@ -38,8 +39,8 @@ data Game = Game {
 -- |Current game state.
 data Mode = -- Cube is being rotated with last mouse position.
             RotationMove (Float, Float)
-            -- Layer is being manipulated from screen click position.
-          | Selected (Float, Float) Locus
+            -- Layer is being manipulated from a selected cell locus.
+          | Selected Locus
             -- Nothing happening
           | Idle
            deriving ( Show )
@@ -57,8 +58,10 @@ data Mode = -- Cube is being rotated with last mouse position.
 -- the z-axis. Each cell in a layer is defined by six faces, which in
 -- turn have color values. Layers in other planes (e.g., (z,y)) are
 -- accessed by first rotating the cube so that the (z,y)-plane now
--- occupies the previous (x,y)-plane (see below). Total rotations of
--- the Rubiks cube are handled using a separate rotation matrix.
+-- occupies the previous (x,y)-plane (see below). See documentation
+-- at the Model.Cube.cubeFace function for details about the
+-- orientation of each face. Total rotations of the Rubiks cube are
+-- handled using a separate rotation matrix.
 --
 --    -y        positive-z into screen
 --     |
@@ -88,7 +91,7 @@ data Color = Red
 
 -- |Cells are defined by their six faces layed out as:
 -- x-positive x-negative y-positive y-negative z-positive z-negative
-data Cell = Cell Color Color Color Color Color Color deriving ( Eq )
+data Cell = Cell Color Color Color Color Color Color deriving ( Eq, Show )
 
 -- |A cube Face is the matrix of corresponding cell face colors.
 type Face = [[Color]]
@@ -126,9 +129,15 @@ data Rotation = Pos90 | Neg90 deriving ( Eq, Show )
 -- |Poles of an axis.
 data Pole = Pos | Neg deriving ( Eq, Show )
 
+-- |A player's move with everything you need to rotate a layer
+type Move = ( Axis     -- Which axis
+            , Rotation -- Which way
+            , Int      -- Layer depth
+            )
+
 -- |Position of a cell on the cube.
 data Locus = Locus { axis  :: Axis          -- Axis orthogonal to cube face
-                   , pole  :: Pole          -- Pole which side of the cube
+                   , pole  :: Pole          -- Which side of the cube
                    , coord :: (Int, Int)    -- Where in the layer
                    } deriving ( Eq, Show )
 

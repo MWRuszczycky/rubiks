@@ -58,8 +58,8 @@ squareColor g s
     | otherwise                    = renderColor. T.front $ s
     where d = T.toScreen g
           isSelected = case T.mode g of
-                            T.Selected _ x -> x == T.locus s
-                            otherwise      -> False
+                            T.Selected lc -> lc == T.locus s
+                            otherwise     -> False
 
 ---------------------------------------------------------------------
 -- Gloss-Model interface functions
