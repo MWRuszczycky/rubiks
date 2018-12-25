@@ -103,26 +103,26 @@ positionCube :: Game -> Transform
 -- the screen.
 positionCube g = M.scalePath (scaling g)
                  . M.translatePath cubeCenter
-                 . M.rotatePath (rotation g)
+                 . M.rotatePath [ rotation g ]
     where cubeCenter = (0,0,100)  -- Initial vector from screen to cube center
 
 positionFace :: Axis -> Pole -> Transform
 -- ^Position each face of the cube from the standard orientation. The
 -- normal vector for the face is assumed to be initially pointing in
 -- the negative-z direction.
-positionFace XAxis Pos = M.translatePath (66, 0,  0) . M.rotatePath
-                             ( M.rotYMat (pi/2) )
-positionFace XAxis Neg = M.translatePath (-66, 0, 0) . M.rotatePath
-                             ( M.prodMM ( M.rotYMat (-pi/2) )
-                                        ( M.rotZMat (-pi/2) ) )
-positionFace YAxis Pos = M.translatePath (0, 66,  0) . M.rotatePath
-                             ( M.rotXMat (-pi/2) )
-positionFace YAxis Neg = M.translatePath (0,-66,  0) . M.rotatePath
-                             ( M.prodMM ( M.rotXMat (pi/2) )
-                                        ( M.rotZMat (pi/2) ) )
-positionFace ZAxis Pos = M.translatePath (0,  0, 66) . M.rotatePath
-                             ( M.prodMM ( M.rotXMat pi     )
-                                        ( M.rotZMat (pi/2) ) )
+positionFace XAxis Pos = M.translatePath (66, 0,  0)
+                         . M.rotatePath [ M.rotYMat (pi/2)  ]
+positionFace XAxis Neg = M.translatePath (-66, 0, 0)
+                         . M.rotatePath [ M.rotYMat (-pi/2)
+                                        , M.rotZMat (-pi/2) ]
+positionFace YAxis Pos = M.translatePath (0, 66,  0)
+                         . M.rotatePath [ M.rotXMat (-pi/2) ]
+positionFace YAxis Neg = M.translatePath (0,-66,  0)
+                         . M.rotatePath [ M.rotXMat (pi/2)
+                                        , M.rotZMat (pi/2)  ]
+positionFace ZAxis Pos = M.translatePath (0,  0, 66)
+                         . M.rotatePath [ M.rotXMat pi
+                                         , M.rotZMat (pi/2) ]
 positionFace ZAxis Neg = M.translatePath (0,  0,-66)
 
 moveSquare :: Transform -> Square -> Square

@@ -19,6 +19,7 @@ module Model.Geometry
 -- General 3D-matrix and vector operations for a left-handed frame
 -- =============================================================== --
 
+import Data.List    ( foldl'         )
 import Model.Types  ( Axis      (..)
                     , Cell      (..)
                     , Color     (..)
@@ -84,9 +85,12 @@ tr ( (x1, y1, z1)
 
 -- Exported
 
-rotatePath :: Matrix -> Transform
+rotatePath :: [Matrix] -> Transform
 -- ^Rotate all vectors in a path using the given rotation matrix.
-rotatePath m = map ( prodMV m )
+rotatePath []     = id
+rotatePath (m:ms) = map ( prodMV t )
+    where t = foldl' prodMM m ms
+-- rotatePath m = map ( prodMV m )
 
 translatePath :: Vec3 -> Transform
 -- ^Translate all vectors in a path by the given vector.
