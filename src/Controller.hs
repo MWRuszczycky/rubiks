@@ -20,6 +20,8 @@ routeEvent (G.EventKey (G.MouseButton G.RightButton) G.Down _ xy) =
     rightMouseDown xy
 routeEvent (G.EventKey (G.MouseButton G.RightButton) G.Up   _ _ ) =
     rightMouseUp
+routeEvent (G.EventKey (G.SpecialKey G.KeySpace)     G.Down _ _ ) =
+    undoLast
 routeEvent (G.EventMotion xy)                                     =
     movement xy
 routeEvent _                                                      =
@@ -47,6 +49,14 @@ movement xy g = case T.mode g of
                      T.Selected lc       -> rotateLayer xy lc g
                      T.ScalingMove s xy' -> scaleCube xy' xy s g
 
+undoLast :: T.Game -> T.Game
+undoLast g = let c = T.cube g
+             in  case T.moves g of
+                      []   -> g
+                      m:ms -> g { T.cube  = M.rotateLayer (M.undo m) c
+                                , T.moves = ms
+                                }
+
 ---------------------------------------------------------------------
 -- Helper functions
 
@@ -64,9 +74,10 @@ rotateCube (x,y) (x',y') g =
 rotateLayer :: G.Point -> T.Locus -> T.Game -> T.Game
 rotateLayer xy lc g = maybe g id go
     where go = do lc' <- getLocus xy g
-                  r   <- M.getMove lc lc'
-                  return g { T.cube = M.rotateLayer r . T.cube $ g
-                           , T.mode = T.Selected lc'
+                  mv  <- M.getMove lc lc'
+                  return g { T.cube  = M.rotateLayer mv . T.cube $ g
+                           , T.mode  = T.Selected lc'
+                           , T.moves = mv : T.moves g
                            }
 
 scaleCube :: G.Point -> G.Point -> Float -> T.Game -> T.Game

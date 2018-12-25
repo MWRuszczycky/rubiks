@@ -18,4 +18,5 @@ initGame = ( g, w )
                      , T.mode     = T.Idle
                      , T.toScreen = 500
                      , T.scaling  = 1
+                     , T.moves    = []
                      }

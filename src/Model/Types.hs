@@ -35,6 +35,7 @@ data Game = Game {
     , mode     :: Mode   -- What the user is doing
     , toScreen :: Float  -- Distance from user to the screen
     , scaling  :: Float  -- Scaling factor for cube size
+    , moves    :: [Move] -- All player moves made in the game
     }
 
 -- |Current game state.

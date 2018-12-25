@@ -5,6 +5,7 @@ module Model.Cube
       -- Rotating each layer of the cube
     , getMove
     , rotateLayer
+    , undo
     ) where
 
 -- =============================================================== --
@@ -95,6 +96,10 @@ getMove ( Locus a p (r,c) ) ( Locus a' p' (r',c') )
           go ZAxis Neg = XAxis
           repol Pos    = Neg
           repol Neg    = Pos
+
+undo :: Move -> Move
+undo (a, Neg90, n) = (a, Pos90, n)
+undo (a, Pos90, n) = (a, Neg90, n)
 
 rotateLayer :: Move -> Cube -> Cube
 -- ^Rotate cube so that the axis of rotation points in the positive-z

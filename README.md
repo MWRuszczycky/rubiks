@@ -8,7 +8,12 @@ This is a 3D-Rubik's cube simulator written entirely in Haskell using [Gloss](ht
 
 ## Play
 
-Right now, the play is pretty rudimentary, but it seems to work! Left-click on a cell and drag it the way you want to rotate the layer. To rotate the whole cube, left-click next to the cube and drap up-down or left-right. To scale the cube, right-click and drag up-down. **To quit the game, press `Esc`.**
+Right now, the play is pretty rudimentary, but it seems to work!
+* Left-click on a cell and drag it the way you want to rotate the layer.
+* To rotate the whole cube, left-click next to the cube and drag up-down or left-right.
+* To scale the cube, right-click and drag up-down.
+* To undo the last move, press the space bar.
+* **To quit the game, press `Esc`.**
 
 ## Installation and uninstallation
 
@@ -32,9 +37,12 @@ To uninstall, delete the repository and the binary installed by stack if you did
 
 ## Known issues and to-do
 
-1. Make it easier to quit rather than having to use `Esc`.
-2. Implement undos.
-3. Implement randomized starts rather than beginning with a solved cube.
-4. Implement saving of progress.
-5. Maybe allow user to choose their own colors.
-6. Write a better README.
+* Make it easier to quit rather than having to use `Esc`.
+* Implement randomized starts rather than beginning with a solved cube.
+* Implement saving of progress.
+* Maybe allow user to choose their own colors.
+* Write a better README.
+* Several functions need commenting and the Controller could probably be better refactored.
+* Improve the entry point and add help/about functionality.
+* Add clickable buttons for undos, quitting, saving, etc.
+* Improve the scaling algorithm to better handle perspective.
