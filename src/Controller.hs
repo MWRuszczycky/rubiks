@@ -12,24 +12,40 @@ import Data.List                                           ( foldl'
                                                            , find   )
 
 routeEvent :: G.Event -> T.Game -> T.Game
-routeEvent (G.EventKey (G.MouseButton G.LeftButton) G.Down _ xy ) = mouseDown xy
-routeEvent (G.EventKey (G.MouseButton G.LeftButton) G.Up   _ _  ) = mouseUp
-routeEvent (G.EventMotion xy)                                     = movement xy
-routeEvent _                                                      = id
+routeEvent (G.EventKey (G.MouseButton G.LeftButton) G.Down _ xy ) =
+    leftMouseDown xy
+routeEvent (G.EventKey (G.MouseButton G.LeftButton) G.Up   _ _  ) =
+    leftMouseUp
+routeEvent (G.EventKey (G.MouseButton G.RightButton) G.Down _ xy) =
+    rightMouseDown xy
+routeEvent (G.EventKey (G.MouseButton G.RightButton) G.Up   _ _ ) =
+    rightMouseUp
+routeEvent (G.EventMotion xy)                                     =
+    movement xy
+routeEvent _                                                      =
+    id
 
-mouseUp :: T.Game -> T.Game
-mouseUp g = g { T.mode = T.Idle }
+leftMouseUp :: T.Game -> T.Game
+leftMouseUp g = g { T.mode = T.Idle }
 
-mouseDown :: G.Point -> T.Game -> T.Game
-mouseDown xy g = case getLocus xy g of
-                      Nothing -> g { T.mode = T.RotationMove xy }
-                      Just lc -> g { T.mode = T.Selected lc    }
+leftMouseDown :: G.Point -> T.Game -> T.Game
+leftMouseDown xy g = case getLocus xy g of
+                          Nothing -> g { T.mode = T.RotationMove xy }
+                          Just lc -> g { T.mode = T.Selected lc    }
+
+rightMouseUp :: T.Game -> T.Game
+rightMouseUp g = g { T.mode = T.Idle }
+
+rightMouseDown :: G.Point -> T.Game -> T.Game
+rightMouseDown p g = let s = T.scaling g
+                     in  g { T.mode = T.ScalingMove s p }
 
 movement :: (Float, Float) -> T.Game -> T.Game
 movement xy g = case T.mode g of
-                     T.Idle             -> g
-                     T.RotationMove xy' -> rotateCube xy' xy g
-                     T.Selected lc      -> rotateLayer xy lc g
+                     T.Idle              -> g
+                     T.RotationMove xy'  -> rotateCube xy' xy g
+                     T.Selected lc       -> rotateLayer xy lc g
+                     T.ScalingMove s xy' -> scaleCube xy' xy s g
 
 ---------------------------------------------------------------------
 -- Helper functions
@@ -38,7 +54,7 @@ getLocus :: G.Point -> T.Game -> Maybe T.Locus
 getLocus xy g = T.locus <$> find ( M.isOnSquare (T.toScreen g) xy ) sqs
     where sqs = M.cubeToSquares (M.positionCube g) . T.cube $ g
 
-rotateCube :: (Float, Float) -> (Float, Float) -> T.Game -> T.Game
+rotateCube :: G.Point -> G.Point -> T.Game -> T.Game
 rotateCube (x,y) (x',y') g =
     let dtx = (x' - x) / 100
         dty = (y - y') / 100
@@ -52,3 +68,11 @@ rotateLayer xy lc g = maybe g id go
                   return g { T.cube = M.rotateLayer r . T.cube $ g
                            , T.mode = T.Selected lc'
                            }
+
+scaleCube :: G.Point -> G.Point -> Float -> T.Game -> T.Game
+scaleCube (_,y) (_,y') s g
+    | s' > 0.1  = g { T.scaling = s' }
+    | otherwise = g
+    where dy = (y - y') / 100
+          d  = T.toScreen g
+          s' = dy + s

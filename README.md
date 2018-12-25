@@ -8,7 +8,7 @@ This is a 3D-Rubik's cube simulator written entirely in Haskell using [Gloss](ht
 
 ## Play
 
-Right now, the play is pretty rudimentary, but it seems to work! Click on a cell and drag it the way you want to rotate the layer. To rotate the whole cube, click next to the cube and drap up-down or left-right. **To quit the game, press `Esc`.**
+Right now, the play is pretty rudimentary, but it seems to work! Left-click on a cell and drag it the way you want to rotate the layer. To rotate the whole cube, left-click next to the cube and drap up-down or left-right. To scale the cube, right-click and drag up-down. **To quit the game, press `Esc`.**
 
 ## Installation and uninstallation
 

@@ -34,11 +34,14 @@ data Game = Game {
     , rotation :: Matrix -- User-rotation of the cube
     , mode     :: Mode   -- What the user is doing
     , toScreen :: Float  -- Distance from user to the screen
+    , scaling  :: Float  -- Scaling factor for cube size
     }
 
 -- |Current game state.
 data Mode = -- Cube is being rotated with last mouse position.
             RotationMove (Float, Float)
+            -- Cube is being scaled for initial scale factor and mouse down.
+          | ScalingMove Float (Float, Float)
             -- Layer is being manipulated from a selected cell locus.
           | Selected Locus
             -- Nothing happening

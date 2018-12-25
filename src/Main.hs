@@ -16,5 +16,6 @@ initGame = ( g, w )
           g = T.Game { T.cube     = solved
                      , T.rotation = rotXMat 0
                      , T.mode     = T.Idle
-                     , T.toScreen = 250
+                     , T.toScreen = 500
+                     , T.scaling  = 1
                      }

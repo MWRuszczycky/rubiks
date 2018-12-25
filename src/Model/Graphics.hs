@@ -98,10 +98,13 @@ baseSquare a p (i,j) c = Square ( Locus a p (i,j) ) c Hidden coord
 -- Transforms of 3D-representations
 
 positionCube :: Game -> Transform
--- ^Given the current game state, figure out how to position the cube
--- in three dimensions making sure it is always behind the screen.
-positionCube g = M.translatePath cubeCenter . M.rotatePath (rotation g)
-    where cubeCenter = (0,0,100)  -- Vector from screen to cube center
+-- ^Given the current game state, figure out how to position and
+-- scale he cube in three dimensions making sure it is always behind
+-- the screen.
+positionCube g = M.scalePath (scaling g)
+                 . M.translatePath cubeCenter
+                 . M.rotatePath (rotation g)
+    where cubeCenter = (0,0,100)  -- Initial vector from screen to cube center
 
 positionFace :: Axis -> Pole -> Transform
 -- ^Position each face of the cube from the standard orientation. The

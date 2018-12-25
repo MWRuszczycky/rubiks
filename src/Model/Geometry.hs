@@ -7,6 +7,7 @@ module Model.Geometry
     , inConvex2D
       -- Translating and rotating 3D-paths
     , rotatePath
+    , scalePath
     , translatePath
       -- Rotation matrices
     , rotXMat
@@ -18,17 +19,18 @@ module Model.Geometry
 -- General 3D-matrix and vector operations for a left-handed frame
 -- =============================================================== --
 
-import Model.Types  ( Axis     (..)
-                    , Cell     (..)
-                    , Color    (..)
-                    , Cube     (..)
-                    , Face     (..)
-                    , Layer    (..)
-                    , Matrix   (..)
-                    , Pole     (..)
-                    , Rotation (..)
-                    , Vec3     (..)
-                    , Path3D   (..) )
+import Model.Types  ( Axis      (..)
+                    , Cell      (..)
+                    , Color     (..)
+                    , Cube      (..)
+                    , Face      (..)
+                    , Layer     (..)
+                    , Matrix    (..)
+                    , Pole      (..)
+                    , Rotation  (..)
+                    , Transform (..)
+                    , Vec3      (..)
+                    , Path3D    (..) )
 
 ---------------------------------------------------------------------
 -- Vector and matrix operations
@@ -78,18 +80,24 @@ tr ( (x1, y1, z1)
                       , (z1, z2, z3) )
 
 ---------------------------------------------------------------------
--- Translating and rotating 3D-paths
+-- Transforming 3D-paths
 
 -- Exported
 
-rotatePath :: Matrix -> Path3D -> Path3D
+rotatePath :: Matrix -> Transform
 -- ^Rotate all vectors in a path using the given rotation matrix.
 rotatePath m = map ( prodMV m )
 
-translatePath :: Vec3 -> Path3D -> Path3D
+translatePath :: Vec3 -> Transform
 -- ^Translate all vectors in a path by the given vector.
 translatePath (dx,dy,dz) = map go
     where go (x,y,z) = (x + dx, y + dy, z + dz)
+
+scalePath :: Float -> Transform
+scalePath x = map ( prodMV m )
+    where m = ( ( x, 0, 0 )
+              , ( 0, x, 0 )
+              , ( 0, 0, x ) )
 
 ---------------------------------------------------------------------
 -- Rotation matrices for a left-handed coordinate frame
