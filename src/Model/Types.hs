@@ -26,6 +26,8 @@ module Model.Types
  , Vec3         (..)
  ) where
 
+import Codec.BMP ( BMP )
+
 -- =============================================================== --
 -- Types for modeling the game state
 
@@ -36,6 +38,7 @@ data Game = Game {
     , toScreen :: Float  -- Distance from user to the screen
     , scaling  :: Float  -- Scaling factor for cube size
     , moves    :: [Move] -- All player moves made in the game
+    , btnSheet :: BMP    -- Bitmaps for buttons
     }
 
 -- |Current game state.

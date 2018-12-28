@@ -18,6 +18,8 @@ executable             rubiks
   ghc-options:         -O2 -threaded
   build-depends:       base >= 4.7 && < 5
                      , gloss
+                     , bmp
+                     , mtl
   other-modules:       Controller
                      , Model.Cube
                      , Model.Geometry
