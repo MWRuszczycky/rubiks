@@ -32,13 +32,14 @@ import Codec.BMP ( BMP )
 -- Types for modeling the game state
 
 data Game = Game {
-      cube     :: Cube   -- Rubiks cube model state
-    , rotation :: Matrix -- User-rotation of the cube
-    , mode     :: Mode   -- What the user is doing
-    , toScreen :: Float  -- Distance from user to the screen
-    , scaling  :: Float  -- Scaling factor for cube size
-    , moves    :: [Move] -- All player moves made in the game
-    , btnSheet :: BMP    -- Bitmaps for buttons
+      cube     :: Cube       -- Rubiks cube model state
+    , rotation :: Matrix     -- User-rotation of the cube
+    , mode     :: Mode       -- What the user is doing
+    , toScreen :: Float      -- Distance from user to the screen
+    , scaling  :: Float      -- Scaling factor for cube size
+    , moves    :: [Move]     -- All player moves made in the game
+    , btnSheet :: BMP        -- Bitmaps for buttons
+    , dim      :: (Int, Int) -- Screen dimensions
     }
 
 -- |Current game state.

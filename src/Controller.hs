@@ -32,6 +32,8 @@ routeEvent (G.EventKey (G.SpecialKey G.KeySpace)     G.Down _ _ ) =
     undoLast
 routeEvent (G.EventMotion xy)                                     =
     mouseMove xy
+routeEvent (G.EventResize wh)                                     =
+    changeDimensions wh
 routeEvent _                                                      =
     id
 
@@ -112,3 +114,6 @@ scaleCube (_,y) (_,y') s g
     where dy = (y - y') / 100
           d  = T.toScreen g
           s' = dy + s
+
+changeDimensions :: (Int, Int) -> T.Game -> T.Game
+changeDimensions (w,h) g = g { T.dim = (w,h) }

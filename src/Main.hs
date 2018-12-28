@@ -24,7 +24,8 @@ main = do
 initGame :: FilePath -> ExceptT String IO (G.Display, T.Game)
 -- ^Initialize the game state and the window.
 initGame path = do
-    let window = G.InWindow "Rubiks" (300, 300) (60, 60)
+    let dimensions = (300, 300)
+        window     = G.InWindow "Rubiks" dimensions (60, 60)
     bmp <- readBitMap path
     return ( window
            , T.Game { T.cube     = solved
@@ -32,6 +33,7 @@ initGame path = do
                     , T.mode     = T.Idle
                     , T.toScreen = 500
                     , T.scaling  = 1
+                    , T.dim      = dimensions
                     , T.moves    = []
                     , T.btnSheet = bmp
                     }

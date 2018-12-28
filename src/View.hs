@@ -16,11 +16,20 @@ import Data.List                     ( sortOn   )
 -- Rendering functions
 
 renderGame :: T.Game -> G.Picture
--- ^Main rendering hub.
-renderGame = renderCube
+-- ^Main rendering function.
+renderGame g = G.pictures [ renderCube g
+                          , renderButtons g
+                          ]
 
 ---------------------------------------------------------------------
 -- Rendering the Rubiks cube
+
+renderButtons :: T.Game -> G.Picture
+-- ^Render the control buttons for exiting, reseting, undoing, etc.
+renderButtons g = G.translate dx dy . G.bitmapOfBMP . T.btnSheet $ g
+    where (w,h) = T.dim g
+          dy    = fromIntegral h / 2 - 20
+          dx    = -1 * ( fromIntegral w / 2 - 80 )
 
 renderCube :: T.Game -> G.Picture
 -- ^Given a rotation matrix, convert a Rubiks cube model into a Gloss
