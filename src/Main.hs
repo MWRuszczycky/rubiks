@@ -11,6 +11,7 @@ main = do
     G.play w G.black 0 g renderGame routeEvent ( \ _ -> id )
 
 initGame :: ( T.Game, G.Display )
+-- ^Initialize the game state and the window.
 initGame = ( g, w )
     where w = G.InWindow "Rubiks" (300, 300) (60, 60)
           g = T.Game { T.cube     = solved
