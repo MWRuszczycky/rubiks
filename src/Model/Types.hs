@@ -167,6 +167,7 @@ instance Random Move where
               (d'',g3) = if d >= 0 && d < 3 && d' >= 0 && d' < 3
                             then randomR (d,d') g2
                             else randomR (0,2)  g2
+
 -- =============================================================== --
 -- Types for modeling the view of the Rubiks cube
 

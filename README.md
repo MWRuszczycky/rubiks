@@ -8,12 +8,16 @@ This is a 3D-Rubik's cube simulator written entirely in Haskell using [Gloss](ht
 
 ## Play
 
-Right now, the play is pretty rudimentary, but it seems to work!
-* Left-click on a cell and drag it the way you want to rotate the layer.
-* To rotate the whole cube, left-click next to the cube and drag up-down or left-right.
-* To scale the cube, right-click and drag up-down.
-* To undo the last move, press the space bar.
-* **To quit the game, press `Esc`.**
+The play is pretty rudimentary (it's just a Rubik's cube), but it seems to work!
+* To quit the game, close the window or press Esc
+* To rotate a layer of the cube, left-click on a cell in the layer and drag it to an adjacent cell in the direction that you want to rotate (see the demo animation above).
+* To rotate the whole cube, left-click adjacent to the cube and drag up-down or left-right.
+* To scale the cube, right-click anywhere and drag up to reduce the size or down to increase the size.
+* To undo your last move, press the space bar.
+* To return the cube to the solved state, press 's'. This clears all previous moves.
+* To add *n* random moves to the current cube, press *n* where *n* is a digit between 0 and 9. Pressing 0 will add 10 random moves. So to add 15 random moves, press 0 then 5. Doing this will clear all previous moves, so you cannot undo it!
+
+To display help information (including the above command list), run `rubiks --help` at the terminal.
 
 ## Installation and uninstallation
 
@@ -37,7 +41,5 @@ To uninstall, delete the repository and the binary installed by stack if you did
 
 ## Known issues and to-do
 
-* Implement randomized starts rather than beginning with a solved cube.
-* Maybe allow user to choose their own colors.
+* Maybe allow user to choose their own colors?
 * Write a better README.
-* Improve the entry point and add help/about functionality.
