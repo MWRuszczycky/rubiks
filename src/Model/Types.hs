@@ -119,10 +119,10 @@ type Cube = [Layer]
 -- its standard orientation.
 
 -- |A player's move with everything you need to rotate a layer
-type Move = ( Axis     -- Which axis
-            , Rotation -- Which way
-            , Int      -- Layer depth
-            )
+data Move = Move { mvAxis     :: Axis     -- Which axis
+                 , mvRotation :: Rotation -- Which way
+                 , mvDepth    :: Int      -- Layer depth
+                 }
 
 -- |Coordinate axis (left-handed, since Gloss has y-pointing up)
 data Axis = XAxis -- Positive axis points to the right

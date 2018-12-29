@@ -83,10 +83,10 @@ getMove :: Locus -> Locus -> Maybe Move
 -- for changing the cube configuration.
 getMove ( Locus a p (r,c) ) ( Locus a' p' (r',c') )
     | a /= a' || p /= p'    = Nothing
-    | r' - r > 0 && c == c' = Just (go a p, Pos90, c)
-    | r' - r < 0 && c == c' = Just (go a p, Neg90, c)
-    | c' - c > 0 && r == r' = Just (go a . repol $ p, Pos90, 2 - r)
-    | c' - c < 0 && r == r' = Just (go a . repol $ p, Neg90, 2 - r)
+    | r' - r > 0 && c == c' = Just $ Move (go a p)           Pos90 c
+    | r' - r < 0 && c == c' = Just $ Move (go a p)           Neg90 c
+    | c' - c > 0 && r == r' = Just $ Move (go a . repol $ p) Pos90 (2 - r)
+    | c' - c < 0 && r == r' = Just $ Move (go a . repol $ p) Neg90 (2 - r)
     | otherwise             = Nothing
     where go XAxis Pos = ZAxis
           go XAxis Neg = YAxis
@@ -98,19 +98,19 @@ getMove ( Locus a p (r,c) ) ( Locus a' p' (r',c') )
           repol Neg    = Pos
 
 undo :: Move -> Move
-undo (a, Neg90, n) = (a, Pos90, n)
-undo (a, Pos90, n) = (a, Neg90, n)
+undo (Move a Neg90 n) = Move a Pos90 n
+undo (Move a Pos90 n) = Move a Neg90 n
 
 rotateLayer :: Move -> Cube -> Cube
 -- ^Rotate cube so that the axis of rotation points in the positive-z
 -- direction and rotate the layer at the specified depth.
-rotateLayer (XAxis,t,n) = rotateCube YAxis Neg90
-                          . rotateZLayer n t
-                          . rotateCube YAxis Pos90
-rotateLayer (YAxis,t,n) = rotateCube XAxis Pos90
-                          . rotateZLayer n t
-                          . rotateCube XAxis Neg90
-rotateLayer (ZAxis,t,n) = rotateZLayer n t
+rotateLayer (Move XAxis t n) = rotateCube YAxis Neg90
+                               . rotateZLayer n t
+                               . rotateCube YAxis Pos90
+rotateLayer (Move YAxis t n) = rotateCube XAxis Pos90
+                               . rotateZLayer n t
+                               . rotateCube XAxis Neg90
+rotateLayer (Move ZAxis t n) = rotateZLayer n t
 
 -- Unexported
 

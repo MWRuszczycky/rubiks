@@ -12,6 +12,7 @@ import qualified Model.Types                          as T
 import qualified Model.Geometry                       as M
 import qualified Model.Graphics                       as M
 import qualified Model.Cube                           as M
+import Model.Resources                                     ( solved )
 import Data.List                                           ( foldl'
                                                            , find   )
 
@@ -30,6 +31,8 @@ routeEvent (G.EventKey (G.MouseButton G.RightButton) G.Up   _ _ ) =
     rightMouseUp
 routeEvent (G.EventKey (G.SpecialKey G.KeySpace)     G.Down _ _ ) =
     undoLast
+routeEvent (G.EventKey (G.Char 's')                  G.Down _ _ ) =
+    resetCube
 routeEvent (G.EventMotion xy)                                     =
     mouseMove xy
 routeEvent (G.EventResize wh)                                     =
@@ -104,6 +107,12 @@ rotateLayer xy lc g = maybe g id go
                            , T.mode  = T.Selected lc'
                            , T.moves = mv : T.moves g
                            }
+
+resetCube :: T.Game -> T.Game
+-- ^Clear all moves and return cube to the solved state.
+resetCube g = g { T.cube  = solved
+                , T.moves = []
+                }
 
 scaleCube :: G.Point -> G.Point -> Float -> T.Game -> T.Game
 -- ^Scale the cube given an initial scale factor a movement of the
