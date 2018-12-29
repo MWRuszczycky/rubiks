@@ -37,9 +37,7 @@ To uninstall, delete the repository and the binary installed by stack if you did
 
 ## Known issues and to-do
 
-* Make it easier to quit rather than having to use `Esc`.
 * Implement randomized starts rather than beginning with a solved cube.
 * Maybe allow user to choose their own colors.
 * Write a better README.
 * Improve the entry point and add help/about functionality.
-* Add clickable buttons for undos, quitting, etc.
