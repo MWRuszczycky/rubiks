@@ -26,7 +26,12 @@ module Model.Types
  , Vec3         (..)
  ) where
 
-import Codec.BMP ( BMP )
+import Data.Bifunctor ( first )
+import System.Random  ( Random
+                      , StdGen
+                      , randomR
+                      , random
+                      , split   )
 
 -- =============================================================== --
 -- Types for modeling the game state
@@ -39,6 +44,7 @@ data Game = Game {
     , scaling  :: Float      -- Scaling factor for cube size
     , moves    :: [Move]     -- All player moves made in the game
     , dim      :: (Int, Int) -- Screen dimensions
+    , gen      :: StdGen     -- Random generator
     }
 
 -- |Current game state.
@@ -118,20 +124,22 @@ type Cube = [Layer]
 -- negative, the rotation is applied and then the cube is returned to
 -- its standard orientation.
 
--- |A player's move with everything you need to rotate a layer
-data Move = Move { mvAxis     :: Axis     -- Which axis
-                 , mvRotation :: Rotation -- Which way
-                 , mvDepth    :: Int      -- Layer depth
-                 }
-
 -- |Coordinate axis (left-handed, since Gloss has y-pointing up)
 data Axis = XAxis -- Positive axis points to the right
           | YAxis -- Positive axis points up
           | ZAxis -- Positive axis points into the screen
-            deriving ( Eq, Show )
+            deriving ( Eq, Ord, Enum, Show )
+
+instance Random Axis where
+    random        = first toEnum . randomR (0,2)
+    randomR (a,b) = first toEnum . randomR (fromEnum a, fromEnum b)
 
 -- |Ninety-degree rotations, which are used for rotating layers.
-data Rotation = Pos90 | Neg90 deriving ( Eq, Show )
+data Rotation = Pos90 | Neg90 deriving ( Eq, Enum, Ord, Show )
+
+instance Random Rotation where
+    random        = first toEnum . randomR (0,1)
+    randomR (a,b) = first toEnum . randomR (fromEnum a, fromEnum b)
 
 -- |Poles of an axis.
 data Pole = Pos | Neg deriving ( Eq, Show )
@@ -143,6 +151,23 @@ data Locus = Locus { axis  :: Axis          -- Axis orthogonal to cube face
                    , coord :: (Int, Int)    -- Where in the layer
                    } deriving ( Eq, Show )
 
+-- |A player's move with everything you need to rotate a layer
+data Move = Move { mvAxis     :: Axis     -- Which axis
+                 , mvRotation :: Rotation -- Which way
+                 , mvDepth    :: Int      -- Layer depth
+                 } deriving ( Eq, Ord, Show )
+
+instance Random Move where
+    random g = ( Move a r d, g3 )
+        where (a,g1) = random g
+              (r,g2) = random g1
+              (d,g3) = randomR (0,2) g2
+    randomR (Move a r d, Move a' r' d') g = ( Move a'' r'' d'', g3 )
+        where (a'',g1) = randomR (a,a') g
+              (r'',g2) = randomR (r,r') g1
+              (d'',g3) = if d >= 0 && d < 3 && d' >= 0 && d' < 3
+                            then randomR (d,d') g2
+                            else randomR (0,2)  g2
 -- =============================================================== --
 -- Types for modeling the view of the Rubiks cube
 

@@ -12,9 +12,10 @@ import qualified Model.Types                          as T
 import qualified Model.Geometry                       as M
 import qualified Model.Graphics                       as M
 import qualified Model.Cube                           as M
-import Model.Resources                                     ( solved )
+import System.Random                                       ( randoms )
+import Model.Resources                                     ( solved  )
 import Data.List                                           ( foldl'
-                                                           , find   )
+                                                           , find    )
 
 -- =============================================================== --
 -- Event handlers
