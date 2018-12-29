@@ -30,8 +30,7 @@ import Data.Bifunctor ( first )
 import System.Random  ( Random
                       , StdGen
                       , randomR
-                      , random
-                      , split   )
+                      , random  )
 
 -- =============================================================== --
 -- Types for modeling the game state

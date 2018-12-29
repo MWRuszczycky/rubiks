@@ -12,10 +12,13 @@ import qualified Model.Types                          as T
 import qualified Model.Geometry                       as M
 import qualified Model.Graphics                       as M
 import qualified Model.Cube                           as M
-import System.Random                                       ( randoms )
-import Model.Resources                                     ( solved  )
+import Model.Resources                                     ( solved     )
+import Data.Char                                           ( isDigit
+                                                           , digitToInt )
+import System.Random                                       ( randoms
+                                                           , split      )
 import Data.List                                           ( foldl'
-                                                           , find    )
+                                                           , find       )
 
 -- =============================================================== --
 -- Event handlers
@@ -32,8 +35,8 @@ routeEvent (G.EventKey (G.MouseButton G.RightButton) G.Up   _ _ ) =
     rightMouseUp
 routeEvent (G.EventKey (G.SpecialKey G.KeySpace)     G.Down _ _ ) =
     undoLast
-routeEvent (G.EventKey (G.Char 's')                  G.Down _ _ ) =
-    resetCube
+routeEvent (G.EventKey (G.Char k)                    G.Down _ _ ) =
+    routeCharDown k
 routeEvent (G.EventMotion xy)                                     =
     mouseMove xy
 routeEvent (G.EventResize wh)                                     =
@@ -43,6 +46,15 @@ routeEvent _                                                      =
 
 ---------------------------------------------------------------------
 -- Handlers and routers for specific input events
+
+routeCharDown :: Char -> T.Game -> T.Game
+-- ^User pressed a character key.
+routeCharDown 's' = resetCube
+routeCharDown c
+    | isDigit c = randomizeCube n
+    | otherwise = id
+    where n | c == '0'  = 10
+            | otherwise = digitToInt c
 
 leftMouseUp :: T.Game -> T.Game
 -- ^Left mouse button released.
@@ -126,4 +138,16 @@ scaleCube (_,y) (_,y') s g
           s' = dy + s
 
 changeDimensions :: (Int, Int) -> T.Game -> T.Game
+-- ^Update the known dimensions of the window.
 changeDimensions (w,h) g = g { T.dim = (w,h) }
+
+randomizeCube :: Int -> T.Game -> T.Game
+-- ^Apply n random moves to the cube in its current state and clear
+-- all previous moves from the undo list.
+randomizeCube n game = let (g1,g2) = split . T.gen $ game
+                           mvs     = take n . randoms $ g1
+                           c       = T.cube game
+                       in  game { T.gen   = g2
+                                , T.cube  = foldr M.rotateLayer c mvs
+                                , T.moves = []
+                                }
