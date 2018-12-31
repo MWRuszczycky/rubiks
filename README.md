@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a 3D-Rubik's cube simulator written entirely in Haskell using [Gloss](https://hackage.haskell.org/package/gloss). It is still a work in progress, but the basic game works.
+This is a 3D-Rubik's cube simulator written entirely in Haskell using [Gloss](https://hackage.haskell.org/package/gloss).
 
 ![rubiks demo](demos/demo1.gif)
 
