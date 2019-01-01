@@ -16,7 +16,7 @@ helpStr :: String
 helpStr = unlines hs
     where hs = [ "Welcome to rubiks! A 3D-rubiks cube simulator!"
                , "rubiks is written in Haskell using Gloss.\n"
-               , "Usage: rubiks [--help]\n"
+               , "Usage: rubiks [ --help | --version ]\n"
                , "Commands:\n"
                , "    * To quit the game, close the window or press Esc.\n"
                , "    * To rotate a layer of the cube, left-click on"

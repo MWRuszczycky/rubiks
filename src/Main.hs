@@ -1,5 +1,7 @@
 import qualified Graphics.Gloss as G
 import qualified Model.Types    as T
+import Data.Version                  ( showVersion     )
+import Paths_rubiks                  ( version         )
 import System.Environment            ( getArgs         )
 import System.Random                 ( getStdGen       )
 import Model.Geometry                ( rotXMat         )
@@ -23,9 +25,12 @@ initGame :: [String] -> IO ( Either String (G.Display, T.Game) )
 initGame []               = Right <$> newGame
 initGame (x:xs)
     | elem x criesForHelp = return . Left $ helpStr
+    | elem x versionReqs  = return . Left $ versionStr
     | otherwise           = return . Left $ errStr
     where criesForHelp = [ "help", "--help", "-h", "info", "--info" ]
+          versionReqs  = [ "version", "--version", "-v" ]
           errStr       = "Unrecognized command.\nTry: rubiks --help"
+          versionStr   = "rubiks-" ++ ( showVersion version )
 
 newGame :: IO (G.Display, T.Game)
 -- ^Provide an initialized game state and window.
