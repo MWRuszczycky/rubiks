@@ -128,14 +128,12 @@ resetCube g = g { T.cube  = solved
                 }
 
 scaleCube :: G.Point -> G.Point -> Float -> T.Game -> T.Game
--- ^Scale the cube given an initial scale factor a movement of the
--- mouse between two y-coordinates.
+-- ^Scale the cube given an initial scale factor and a movement of
+-- the mouse between two y-coordinates.
 scaleCube (_,y) (_,y') s g
     | s' > 0.1  = g { T.scaling = s' }
     | otherwise = g
-    where dy = (y - y') / 100
-          d  = T.toScreen g
-          s' = dy + s
+    where s' = s + (y - y') / 100
 
 changeDimensions :: (Int, Int) -> T.Game -> T.Game
 -- ^Update the known dimensions of the window.
