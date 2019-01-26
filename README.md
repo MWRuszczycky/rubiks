@@ -41,5 +41,5 @@ To uninstall, delete the repository and the binary installed by stack if you did
 
 ## Known issues and to-do
 
+* The program should run on Windows and Linux. If you are using a tiling window manager (e.g., *i3*), then you may need to toggle floating mode on the window. I do not have a Mac to test *rubiks* on; however, an issue has been raised that window resizing can cause warping of the cube when running in this system. Suggestions and pull requests are welcome.
 * Maybe allow user to choose their own colors?
-* Write a better README.
