@@ -53,23 +53,10 @@ squareColor :: T.Game -> T.Square -> G.Color
 -- Determine the Gloss color of the square depending on whether it is
 -- facing towards or away from the viewer and selected or not.
 squareColor g s
-    | not . M.isFacingViewer d $ s = renderColor . T.back $ s
-    | isSelected                   = G.bright . renderColor . T.front $ s
-    | otherwise                    = renderColor. T.front $ s
-    where d = T.toScreen g
+    | not . M.isFacingViewer d $ s = T.renderColor g . T.back $ s
+    | isSelected                   = G.bright . T.renderColor g . T.front $ s
+    | otherwise                    = T.renderColor g . T.front $ s
+    where d          = T.toScreen g
           isSelected = case T.mode g of
                             T.Selected lc -> lc == T.locus s
                             otherwise     -> False
-
----------------------------------------------------------------------
--- Gloss-Model interface functions
-
-renderColor :: T.Color -> G.Color
--- ^Map Model colors to Gloss colors.
-renderColor T.Red    = G.makeColor 0.78 0.15 0.10 1.0
-renderColor T.White  = G.makeColor 0.75 0.75 0.75 1.0
-renderColor T.Yellow = G.makeColor 1.00 0.85 0.34 1.0
-renderColor T.Green  = G.makeColor 0.00 0.54 0.36 1.0
-renderColor T.Blue   = G.makeColor 0.00 0.64 1.00 1.0
-renderColor T.Orange = G.makeColor 1.00 0.38 0.00 1.0
-renderColor T.Hidden = G.makeColor 0.10 0.10 0.10 1.0

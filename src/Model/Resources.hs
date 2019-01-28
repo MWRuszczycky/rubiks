@@ -1,11 +1,12 @@
 module Model.Resources
-    ( solved
-    , helpStr
+    ( helpStr
+    , solved
     ) where
 
-import Model.Types  ( Cell  (..)
-                    , Color (..)
-                    , Cube  (..) )
+import Model.Types ( Cell     (..)
+                   , Color    (..)
+                   , ColorMap (..)
+                   , Cube     (..) )
 
 -- =============================================================== --
 -- Solved Rubiks cube
@@ -16,7 +17,7 @@ helpStr :: String
 helpStr = unlines hs
     where hs = [ "Welcome to rubiks! A 3D-rubiks cube simulator!"
                , "rubiks is written in Haskell using Gloss.\n"
-               , "Usage: rubiks [ --help | --version ]\n"
+               , "Usage: rubiks [ --help | --version | -c PATH ]\n"
                , "Commands:\n"
                , "    * To quit the game, close the window or press Esc.\n"
                , "    * To rotate a layer of the cube, left-click on"
@@ -34,6 +35,20 @@ helpStr = unlines hs
                , "      add 10 random moves. So to add 15 random moves,"
                , "      press 0 then 5. Doing this will clear all previous"
                , "      moves, so you cannot undo it!\n"
+               , "    * To play with a custom colored cube, use the -c option"
+               , "      followed by the PATH to your color file. A color file"
+               , "      should contain exactly six rgb hexcodes for each of"
+               , "      the six colors you want to use. For example,"
+               , "           #c7c481"
+               , "           #e8b776"
+               , "           #ff918f"
+               , "           #b376e8"
+               , "           #82bfff"
+               , "           #d6d6d6"
+               , "      you can also leave off the leading '#' character in"
+               , "      each code (e.g., c7c481 will also work instead of"
+               , "      #c7c481). If there is any error reading the colors,"
+               , "      then the game will start with the default colors.\n"
                , "rubiks is free, open-source software maintained with full"
                , "documentation and licensing information at:"
                , "    https://github.com/MWRuszczycky/rubiks"

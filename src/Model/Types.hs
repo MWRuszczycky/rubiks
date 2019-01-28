@@ -8,6 +8,7 @@ module Model.Types
    -- Modeling the Rubiks cube and layer rotations
  , Cell         (..)
  , Color        (..)
+ , ColorMap     (..)
  , Cube         (..)
  , Face         (..)
  , Layer        (..)
@@ -26,24 +27,26 @@ module Model.Types
  , Vec3         (..)
  ) where
 
-import Data.Bifunctor ( first )
-import System.Random  ( Random
-                      , StdGen
-                      , randomR
-                      , random  )
+import qualified Graphics.Gloss as G
+import Data.Bifunctor                ( first   )
+import System.Random                 ( Random
+                                     , StdGen
+                                     , randomR
+                                     , random  )
 
 -- =============================================================== --
 -- Types for modeling the game state
 
 data Game = Game {
-      cube     :: Cube       -- Rubiks cube model state
-    , rotation :: Matrix     -- User-rotation of the cube
-    , mode     :: Mode       -- What the user is doing
-    , toScreen :: Float      -- Distance from user to the screen
-    , scaling  :: Float      -- Scaling factor for cube size
-    , moves    :: [Move]     -- All player moves made in the game
-    , dim      :: (Int, Int) -- Screen dimensions
-    , gen      :: StdGen     -- Random generator
+      cube        :: Cube       -- Rubiks cube model state
+    , rotation    :: Matrix     -- User-rotation of the cube
+    , renderColor :: ColorMap   -- Colors to use for the cube faces
+    , mode        :: Mode       -- What the user is doing
+    , toScreen    :: Float      -- Distance from user to the screen
+    , scaling     :: Float      -- Scaling factor for cube size
+    , moves       :: [Move]     -- All player moves made in the game
+    , dim         :: (Int, Int) -- Screen dimensions
+    , gen         :: StdGen     -- Random generator
     }
 
 -- |Current game state.
@@ -92,6 +95,9 @@ data Color = Red
            | Orange
            | Hidden
            deriving ( Show, Eq )
+
+-- |A mapping from Model colors to Gloss colors.
+type ColorMap = Color -> G.Color
 
 -- |Cells are defined by their six faces layed out as:
 -- x-positive x-negative y-positive y-negative z-positive z-negative

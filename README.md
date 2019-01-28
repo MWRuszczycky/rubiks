@@ -16,6 +16,7 @@ The play is pretty rudimentary (it's just a Rubik's cube), but it seems to work!
 * To undo your last move, press the space bar.
 * To return the cube to the solved state, press 's'. This clears all previous moves.
 * To add *n* random moves to the current cube, press *n* where *n* is a digit between 0 and 9. Pressing 0 will add 10 random moves. So to add 15 random moves, press 0 then 5. Doing this will clear all previous moves, so you cannot undo it!
+* You can also play with a cube that is colored any way you like using the `-c` option and a path to a text file containing the six RGB hexcodes you want to use. For more information, run `rubiks --help`.
 
 To display help information (including the above command list), run `rubiks --help` at the terminal.
 
@@ -42,4 +43,4 @@ To uninstall, delete the repository and the binary installed by stack if you did
 ## Known issues and to-do
 
 * The program should run on Windows and Linux. If you are using a tiling window manager (e.g., *i3*), then you may need to toggle floating mode on the window. I do not have a Mac to test *rubiks* on; however, an issue has been raised that window resizing can cause warping of the cube when running in this system. Suggestions and pull requests are welcome.
-* Maybe allow user to choose their own colors?
+* Add demo showing custom colors.

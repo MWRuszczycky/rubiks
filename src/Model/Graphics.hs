@@ -12,6 +12,10 @@ module Model.Graphics
       -- 3D-Queries
     , isFacingViewer
     , isOnSquare
+      -- Dealing with colors
+    , defaultColorMap
+    , makeColorMap
+    , readRGBHexCode
     ) where
 
 -- =============================================================== --
@@ -26,12 +30,15 @@ module Model.Graphics
 -- viewer should always be fully behind the screen.
 -- =============================================================== --
 
+import qualified Graphics.Gloss as G
 import qualified Model.Geometry as M
 import qualified Model.Cube     as M
+import Numeric                       ( readHex        )
 import Data.List                     ( foldl'         )
 import Model.Types                   ( Axis      (..)
                                      , Cell      (..)
                                      , Color     (..)
+                                     , ColorMap  (..)
                                      , Cube      (..)
                                      , Face      (..)
                                      , Game      (..)
@@ -159,3 +166,48 @@ isOnSquare :: Float -> (Float, Float) -> Square -> Bool
 -- projected onto the screen.
 isOnSquare d xy s = isFacingViewer d s && isInside s
     where isInside = M.inConvex2D xy . points . project d
+
+---------------------------------------------------------------------
+-- Dealing with colors
+
+defaultColorMap :: ColorMap
+-- ^Default colors for the Rubik's cube.
+defaultColorMap Red    = G.makeColor 0.78 0.15 0.10 1.0
+defaultColorMap White  = G.makeColor 0.75 0.75 0.75 1.0
+defaultColorMap Yellow = G.makeColor 1.00 0.85 0.34 1.0
+defaultColorMap Green  = G.makeColor 0.00 0.54 0.36 1.0
+defaultColorMap Blue   = G.makeColor 0.00 0.64 1.00 1.0
+defaultColorMap Orange = G.makeColor 1.00 0.38 0.00 1.0
+defaultColorMap Hidden = G.makeColor 0.10 0.10 0.10 1.0
+
+makeColorMap :: Maybe [(Float, Float, Float)] -> ColorMap
+-- ^Generate a map from Model colors to Gloss colors based on a list
+-- of exactly six rgb triples. If this fails, then return the default.
+makeColorMap Nothing = defaultColorMap
+makeColorMap (Just cs)
+    | length cs == 6 = go cs
+    | otherwise      = defaultColorMap
+    where go ((r,g,b):_:_:_:_:_:_) Red    = G.makeColor r g b 1.0
+          go (_:(r,g,b):_:_:_:_:_) White  = G.makeColor r g b 1.0
+          go (_:_:(r,g,b):_:_:_:_) Yellow = G.makeColor r g b 1.0
+          go (_:_:_:(r,g,b):_:_:_) Green  = G.makeColor r g b 1.0
+          go (_:_:_:_:(r,g,b):_:_) Blue   = G.makeColor r g b 1.0
+          go (_:_:_:_:_:(r,g,b):_) Orange = G.makeColor r g b 1.0
+          go _                     Hidden = defaultColorMap Hidden
+
+readRGBHexCode :: String -> Maybe (Float, Float, Float)
+-- ^Converts an rgb hexcode into an rgb triple with values in [0,1].
+readRGBHexCode []       = Nothing
+readRGBHexCode ('#':xs) = readRGBHexCode xs
+readRGBHexCode xs
+    | length xs == 6 = fmap ( \ (r:g:b:_) -> (r/255 , g/255 , b/255) )
+                       . mapM go . breakInto 2 $ xs
+    | otherwise      = Nothing
+    where go y = case readHex y of
+                      (n,[]):[] -> Just n
+                      otherwise -> Nothing
+
+breakInto :: Int -> [a] -> [[a]]
+breakInto _ [] = []
+breakInto n xs = top : breakInto n bot
+    where (top,bot) = splitAt 2 xs
