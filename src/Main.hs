@@ -7,9 +7,8 @@ import Paths_rubiks                  ( version         )
 import System.Environment            ( getArgs         )
 import System.Random                 ( getStdGen       )
 import Model.Geometry                ( rotXMat         )
-import Model.Graphics                ( defaultColorMap
-                                     , readRGBHexCode 
-                                     , makeColorMap    )
+import Model.Graphics                ( makeColorMap
+                                     , readRGBHexCode  )
 import Controller                    ( routeEvent      )
 import View                          ( renderGame      )
 import Model.Resources               ( helpStr
@@ -27,7 +26,7 @@ main = do
 
 initGame :: [String] -> IO ( Either String (G.Display, T.Game) )
 -- ^Decide what to do based on the user input.
-initGame []               = Right <$> newGame defaultColorMap
+initGame []               = Right <$> newGame ( makeColorMap Nothing )
 initGame (x:xs)
     | elem x criesForHelp = return . Left  $ helpStr
     | elem x versionReqs  = return . Left  $ versionStr
@@ -60,8 +59,8 @@ newGame colorMap = do
 getColorMap :: [String] -> IO T.ColorMap
 -- ^Try to read a color map based on file path from the command line
 -- arguments. If this fails, then return the default color map.
-getColorMap []     = return defaultColorMap
+getColorMap []     = return . makeColorMap $ Nothing
 getColorMap (fp:_) = go <$> try (readFile fp)
     where go :: Either SomeException String -> T.ColorMap
-          go (Left _)  = defaultColorMap
+          go (Left _)  = makeColorMap Nothing
           go (Right x) = makeColorMap . mapM readRGBHexCode . words $ x

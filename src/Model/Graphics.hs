@@ -13,7 +13,6 @@ module Model.Graphics
     , isFacingViewer
     , isOnSquare
       -- Dealing with colors
-    , defaultColorMap
     , makeColorMap
     , readRGBHexCode
     ) where
@@ -170,16 +169,6 @@ isOnSquare d xy s = isFacingViewer d s && isInside s
 ---------------------------------------------------------------------
 -- Dealing with colors
 
-defaultColorMap :: ColorMap
--- ^Default colors for the Rubik's cube.
-defaultColorMap Red    = G.makeColor 0.78 0.15 0.10 1.0
-defaultColorMap White  = G.makeColor 0.75 0.75 0.75 1.0
-defaultColorMap Yellow = G.makeColor 1.00 0.85 0.34 1.0
-defaultColorMap Green  = G.makeColor 0.00 0.54 0.36 1.0
-defaultColorMap Blue   = G.makeColor 0.00 0.64 1.00 1.0
-defaultColorMap Orange = G.makeColor 1.00 0.38 0.00 1.0
-defaultColorMap Hidden = G.makeColor 0.10 0.10 0.10 1.0
-
 makeColorMap :: Maybe [(Float, Float, Float)] -> ColorMap
 -- ^Generate a map from Model colors to Gloss colors based on a list
 -- of exactly six rgb triples. If this fails, then return the default.
@@ -193,7 +182,17 @@ makeColorMap (Just cs)
           go (_:_:_:(r,g,b):_:_:_) Green  = G.makeColor r g b 1.0
           go (_:_:_:_:(r,g,b):_:_) Blue   = G.makeColor r g b 1.0
           go (_:_:_:_:_:(r,g,b):_) Orange = G.makeColor r g b 1.0
-          go _                     Hidden = defaultColorMap Hidden
+          go _                     Hidden = G.makeColor 0.10 0.10 0.10 1.0
+
+defaultColorMap :: ColorMap
+defaultColorMap = makeColorMap . mapM readRGBHexCode $ cs
+    where cs = [ "#c7261a" -- Red
+               , "#bfbfbf" -- White
+               , "#ffd957" -- Yellow
+               , "#008a5c" -- Green
+               , "#00a3ff" -- Blue
+               , "#ff6100" -- Orange
+               ]
 
 readRGBHexCode :: String -> Maybe (Float, Float, Float)
 -- ^Converts an rgb hexcode into an rgb triple with values in [0,1].
