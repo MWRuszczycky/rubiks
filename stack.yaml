@@ -20,6 +20,14 @@
 # resolver: https://example.com/snapshots/2018-01-01.yaml
 resolver: lts-12.1
 
+nix:
+    enable:   true
+    packages: [ mesa_noglu.drivers
+                libGL
+                libGLU
+                freeglut
+              ]
+
 # User packages to be built.
 # Various formats can be used as shown in the example below.
 #
