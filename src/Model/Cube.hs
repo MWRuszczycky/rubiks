@@ -42,7 +42,7 @@ cellFace ZAxis Pos (Cell _ _ _ _ z _) = z
 cellFace ZAxis Neg (Cell _ _ _ _ _ z) = z
 
 cubeFace :: Axis -> Pole -> Cube -> Face
--- ^Retrieve the faces of all six cells at the specified pole of the
+-- ^Retrieve the faces of all nine cells at the specified pole of the
 -- specified axis facing out from the center of the cube.
 -- x-positive: +y up , +z right
 cubeFace XAxis Pos = (map . map) (cellFace ZAxis Neg) . head
