@@ -1,3 +1,6 @@
+*.nix
 .stack-work/
+result
+stack.yaml.lock
 demos/working
 dev/
